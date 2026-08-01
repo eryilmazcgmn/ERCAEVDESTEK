@@ -45,6 +45,7 @@ class AuthController extends Controller
         }
 
         $token = $this->jwtService->encode([
+            'id' => $user->id,
             'user_id' => $user->id,
             'role' => $user->role,
             'username' => $user->username,
@@ -77,8 +78,9 @@ class AuthController extends Controller
     public function refresh(Request $request): JsonResponse
     {
         $jwtUser = $request->attributes->get('jwt_user');
+        $userId = (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
 
-        if (!$jwtUser || empty($jwtUser['user_id'])) {
+        if (!$jwtUser || $userId <= 0) {
             return response()->json([
                 'status' => false,
                 'message' => 'Geçersiz veya süresi dolmuş oturum.',
@@ -87,7 +89,7 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $user = User::find($jwtUser['user_id']);
+        $user = User::find($userId);
 
         if (!$user) {
             return response()->json([
@@ -99,6 +101,7 @@ class AuthController extends Controller
         }
 
         $newToken = $this->jwtService->encode([
+            'id' => $user->id,
             'user_id' => $user->id,
             'role' => $user->role,
             'username' => $user->username,

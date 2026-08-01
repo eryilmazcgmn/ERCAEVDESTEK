@@ -9,6 +9,9 @@ use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 use App\Services\Auth\JwtService;
 
+use Throwable;
+use Illuminate\Support\Facades\Log;
+
 class JwtAuthenticate
 {
     protected JwtService $jwtService;
@@ -35,7 +38,15 @@ class JwtAuthenticate
         }
 
         $token = $matches[1];
-        $decoded = $this->jwtService->decode($token);
+
+        try {
+            $decoded = $this->jwtService->decode($token);
+        } catch (Throwable $e) {
+            Log::error('Unexpected exception during JWT authentication', [
+                'exception' => $e->getMessage()
+            ]);
+            $decoded = null;
+        }
 
         if (!$decoded) {
             return response()->json([

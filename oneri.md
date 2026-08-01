@@ -1,187 +1,93 @@
-Kritik: JWT ve konfigürasyon doğrulama
-Neden: Token üretimi/verification için JWT_SECRET gerekli; eksikse runtime hataları veya güvenlik açığı oluşur.
-Yapılacaklar:
-.env içinde services.jwt.secret (veya config/services.php ile map) değerinin en az 32 karakter olduğundan emin ol.
-Deploy pipeline’a veya ręf testine config check ekle (artisan komutuyla).
-Dosyalar:
-backend/app/Services/Auth/JwtService.php
-(opsiyonel) backend/app/Console/Commands/ConfigCheckCommand.php
-Kod örneği (zaten önerildi/eklenebilir):
-JwtService constructor’da secret kontrolü (loglar) — mevcutsa bırak ya da encode/decode sırasında ensureSecretValid() kullan.
-Artisan check komutu (örnek):
-PHP
-// backend/app/Console/Commands/ConfigCheckCommand.php
-// kontrol: JWT_SECRET uzunluğu ve public storage symlink
-Test / Doğrulama:
-.env’ye JWT_SECRET ekle: export JWT_SECRET="random-32-or-more-chars"
-Lokal: php artisan app:config-check (komut eklediysen)
-CI: workflow’da config-check çalışsın.
-Kritik: session_id üretimini güvenli hale getir
-Neden: Tahmin edilebilir session_id brute-force riskine yol açar.
-Yapılacaklar:
-session id üretimini UUID veya cryptographically secure random ile değiştir.
-Dosya:
-backend/app/Services/CustomerService.php
-Değişiklik:
-PHP
-use Illuminate\Support\Str;
-$sessionId = 'SES_' . Str::uuid()->toString(); // güvenli UUID
-Test / Doğrulama:
-POST start-session endpoint’ini çağır, dönen session_id’nin SES_ ile başlayıp UUID formatına benzediğini kontrol et.
-Kritik: Dosya yükleme güvenliği (finfo fallback + .htaccess)
-Neden: MIME spoofing, PHP dosyası yüklenmesi, veya paylaşılan hostta fileinfo extension yokluğu.
-Yapılacaklar:
-uploadSessionFile fonksiyonunda finfo_open kullan; eğer ext-fileinfo yoksa fallback olarak $file->getMimeType() kullan.
-upload klasörü oluşturulurken yalnızca yoksa .htaccess yaz; var olan dosyayı ezme.
-Dosya isimlendirme için cryptographically secure random (bin2hex(random_bytes(...))) kullan (zaten varsa bırak).
-Dosya:
-backend/app/Services/CustomerService.php
-Kod örneği:
-PHP
-if (function_exists('finfo_open')) {
-  $finfo = finfo_open(FILEINFO_MIME_TYPE);
-  $realMime = finfo_file($finfo, $file->getPathname());
-  finfo_close($finfo);
-} else {
-  $realMime = $file->getMimeType();
-}
-// upload dir
-if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
-if (!file_exists($htaccessPath)) {
-  file_put_contents($htaccessPath, "# Prevent PHP execution\nphp_flag engine off\nRemoveHandler .php .phtml ...\n");
-}
-Test / Doğrulama:
-ext-fileinfo yüklü bir ortamda test et: başarılı upload.
-ext-fileinfo yüklü olmayan test ortamında fallback çalışmalı (hata atmamalı).
-Yüksek: storage symlink ve UploadedFile URL accessor
-Neden: storage:link yoksa public URL kırılır; URL üretimini modele taşımak temiz ve tek sorumluluklu.
-Yapılacaklar:
-php artisan storage:link çalıştır ve DEPLOYMENT.md’ye ekle.
-Modelde accessor ekle veya doğrula: backend/app/Models/UploadedFile.php → getUrlAttribute().
-Controller’larda asset(...) kullanımını $uploadedFile->url ile değiştir.
-Dosyalar:
-backend/app/Models/UploadedFile.php
-backend/app/Http/Controllers/SessionController.php
-Kod örneği:
-PHP
-// model
-public function getUrlAttribute(): string {
-  return url('storage/uploads/' . basename($this->file_path));
-}
-
-// controller response
-'file_path' => $uploadedFile->url,
-Test / Doğrulama:
-php artisan storage:link
-upload işlemi sonrası dönen URL tarayıcıda açılmalı.
-Yüksek: JWT middleware + admin middleware kayıt kontrolü
-Neden: Merkezi auth middleware yoksa controller bazlı kontroller atlanabilir.
-Yapılacaklar:
-JwtAuthenticate ve AdminRoleCheck middleware’leri Kernel’e register et (route veya global middleware).
-Router’larda admin-only rotaları ilgili middleware ile koru.
-Dosyalar:
-backend/app/Http/Middleware/JwtAuthenticate.php
-backend/app/Http/Middleware/AdminRoleCheck.php
-backend/app/Http/Kernel.php (kontrol/ekleme)
-Örnek (Kernel.php içinde):
-PHP
-protected $routeMiddleware = [
-  // ...
-  'jwt.auth' => \App\Http\Middleware\JwtAuthenticate::class,
-  'role.admin' => \App\Http\Middleware\AdminRoleCheck::class,
-];
-Test / Doğrulama:
-Admin-only endpoint’e token olmadan istekte bulun -> 401/403 döndürmeli.
-Geçerli admin token ile istek -> 200.
-Orta: Loglama ve hata yönetimini standartlaştır
-Neden: Hata analizi için exception nesnesini loglamak lazım (stack trace).
-Yapılacaklar:
-catch bloklarında Log::error('...', ['exception' => $e, ...]) şeklinde tutarlı kullan.
-Gizli verileri loglama (kullanıcı şifreleri, tokenlar) sakın loglama.
-Dosyalar: backend/app/Http/Controllers/*.php genel olarak
-Test / Doğrulama:
-Hata üreten senaryo yaratıp storage/logs/laravel.log içeriğini kontrol et.
-Orta: DB indeksleri ve sorgu optimizasyonu
-Neden: Conversation.session_id, UploadedFile.conversation_id, Quotation.conversation_id aramaları optimizasyon gerektirir.
-Yapılacaklar:
-Eğer migration’larda yoksa index ekle için yeni migration oluştur:
-PHP
-Schema::table('conversations', function (Blueprint $table) {
-  $table->index('session_id');
-});
-Test / Doğrulama:
-Büyük veri seti simülasyonu yoksa EXPLAIN ile sorgu planını incele.
-Orta: PHPUnit testleri ekle / çalıştır
-Neden: Kritik fonksiyonlar (startSession, uploadSessionFile, updateContactInfo) unit/integration testleri ile güvence altına alınsın.
-Yapılacaklar:
-tests/Unit/CustomerServiceTest.php — startSession, updateContactInfo (mock DB).
-tests/Feature/UploadTest.php — fake storage ile upload testi:
-PHP
-Storage::fake('public');
-$response = $this->post('/api/session/.../upload', [...]);
-Storage::disk('public')->assertExists('uploads/...'); 
-Komut:
-cd backend && vendor/bin/phpunit
-CI:
-GitHub Actions ile phpunit job ekle (.github/workflows/phpunit.yml).
-Orta: Frontend küçük düzeltmeler ve test
-Neden: useEffect dependency, API base URL kontrollü olmalı.
-Yapılacaklar:
-frontend/src/App.jsx: useEffect deps -> add navigate ve location.pathname.
-frontend/src/config veya env dosyasında API_BASE_URL kontrolü; production build için doğru ayarlama.
-Test / Doğrulama:
-cd frontend && npm ci && npm run build
-Lokal: npm run dev ve rota geçişlerini test et.
-Orta/Düşük: DEPLOYMENT.md güncelle ve otomasyon
-Neden: Deploy adımlarının kesin ve eksiksiz olması gerekir (storage:link, cron, php.ini limits).
-Yapılacaklar:
-DEPLOYMENT.md’ye:
-php artisan storage:link talimatı
-JWT_SECRET gereksinimi (min 32)
-cron komutları ve queue worker hatırlatma
-ext-fileinfo requirement (PHP)
-Opsiyonel: Deploy script (bash) veya docker-compose/forge script hazırlama.
-Test / Doğrulama:
-Staging ortamında adımları uygulayıp smoke test yap.
-Düşük: .htaccess / Nginx uyumluluğu ve dokümantasyon
-Neden: .htaccess sadece Apache için; Nginx kullanılıyorsa farklı konfig gerekecek.
-Yapılacaklar:
-DEPLOYMENT.md’ye Nginx snippet ekle (uploads dizini için location deny php).
-Örnek Nginx snippet:
-Nginx
-location ~* /storage/uploads/.*\.(php|phtml)$ {
-  deny all;
-}
-Düşük: Monitoring / failed_jobs / error tracking
-Neden: Prod hatalarını izlemek için Sentry/Honeybadger veya benzeri gerekli.
-Yapılacaklar:
-failed_jobs tablolarını izleme; queue worker restart/monitor.
-Hata izleme entegrasyonu (Sentry).
-Test / Doğrulama:
-Test hata atıp Sentry dashboard’ta görünmesini kontrol et.
-PR / Git / CI süreçleri (adımlar)
-Yerel:
-Code
-git checkout -b fix/security-upload-jwt-YYYYMMDD
-# değişiklikleri yap
-git add .
-git commit -m "Security: session id (UUID), finfo fallback, uploadedFile URL accessor, config-check command, CI workflows"
-git push origin fix/security-upload-jwt-YYYYMMDD
-PR:
-Başlık: security/upload/jwt fixes
-Açıklama: hangi dosyalar değişti, test talimatları, migration var mı vs.
-CI:
-.github/workflows/phpunit.yml (backend test job)
-.github/workflows/frontend-build.yml (frontend build job)
-Veritabanı migration örneği (index ekleme)
-Dosya: create_migration_add_indexes.php (artisan make:migration)
-PHP
-public function up()
-{
-  Schema::table('conversations', function (Blueprint $table) {
-    $table->index('session_id');
-  });
-  Schema::table('uploaded_files', function (Blueprint $table) {
-    $table->index('conversation_id');
-  });
-}
+Kritik hata: JWT secret kontrolü -> 500 hatası potansiyeli
+Nerede: backend/app/Services/Auth/JwtService.php
+ensureSecretValid() metodu secret geçerli değilse RuntimeException fırlatıyor (lines ~38-43).
+decode() metodu ensureSecretValid() çağırıyor (lines ~68-74).
+Sonuç / Etki:
+Eğer .env içinde services.jwt.secret düzgün ayarlı değilse (ör. geliştirme ya da eksik konfigürasyon), herhangi bir auth korumalı route'a (auth.jwt middleware) istek atıldığında decode() RuntimeException fırlatacak ve uygulama 500 dönebiliyor. Bu, erişim kontrolü yerine sunucu hatası/logu üretir.
+Öneri (yüksek öncelik):
+decode() içinde exception atmak yerine güvenli bir şekilde null döndürün ve middleware'de bu durumu 401 ile karşılayın. Alternatif: ensureSecretValid() exception yerine boolean kontrolü döndürsün.
+Örnek düzeltme (özet):
+JwtService::decode:
+Eğer secret geçersizse loglayıp null dönsün (throw etmeyin).
+JwtAuthenticate::handle:
+decode() çağrısını try/catch ile sarmalayın; decode hata/exception dönerse 401 dönün (500 değil).
+Tutarsız JWT claim isimleri (authentication -> authorization bug)
+Nerede:
+AuthController::login(): token payload'ı oluştururken anahtar olarak 'user_id' kullanıyor (lines ~47-51).
+AuthController::refresh() ise $jwtUser = $request->attributes->get('jwt_user'); ve refresh için $jwtUser['user_id'] kullanıyor (uyumlu).
+Ancak AdminController::technicianWorkOrders ve updateTechnicianWorkOrderStatus gibi yerlerde kod $jwtUser['id'] bekliyor (ör. AdminController lines ~328-331, 355-358).
+Sonuç / Etki:
+JWT içeriği 'user_id' iken kod yer yer 'id' arıyor -> userId = 0 gelir; bunun sonucu yetki denetimleri yanlış davranabilir, hatalı sorgular dönebilir veya boş veri dönebilir. Bu bir güvenlik / doğrulama hatasına yol açabilir.
+Öneri (yüksek öncelik):
+Tutarlılığı sağlamak için tek bir key kullanın. İki seçenek:
+Standardize edin: token payload'ında 'id' kullanın (Laravel model id ile uyumlu).
+Veya tüm tüketicileri 'user_id' kullanacak şekilde değiştirin.
+Benzer yerleri güncelleyin: Jwt oluşturma (AuthController), middleware tarafından request'e set edilen jwt_user formu ve tüm consumer kodlar (AdminController, technician endpoints vb.).
+Örnek düzeltme (özet):
+AuthController::login encode payload'ta 'id' => $user->id yazın (ve refresh'te de aynı).
+Middleware exception ve hata dönüşleri
+Nerede: backend/app/Http/Middleware/JwtAuthenticate.php
+decode çağrısı doğrudan yapılıyor; decode null döndüğünde middleware 401 dönebiliyor (bu iyi), fakat eğer JwtService exception fırlatırsa middleware bunu yakalamıyor.
+Etki:
+Konfigürasyon/secret hatalarında 500 döner; beklenen davranış 401 veya anlaşılır bir hata mesajı olmalı.
+Öneri:
+JwtAuthenticate içinde decode çağrısını try/catch ile sarmalayın ve hata durumunda 401 döndürün. Log detaylı ama kullanıcıya 401 dönülmeli.
+CORS / CSP / Security headers — zayıf veya riskli ayarlar
+Nerede: backend/app/Http/Middleware/CorsAndSecurityHeaders.php
+CSP olarak: "default-src 'self' http: https: data: blob: 'unsafe-inline'" (line ~60).
+X-XSS-Protection header kullanılıyor (deprecte edilmiş).
+Access-Control-Allow-Credentials header yok.
+Risk / Etki:
+'unsafe-inline' inline script'leri izin veriyor — XSS riskini artırır.
+X-XSS-Protection modern tarayıcılarda gereksiz veya deprece edilmiş.
+Eğer kimlik doğrulama cookie ile yapılacaksa Allow-Credentials gerekli.
+Öneri:
+CSP’yi tighten edin; mümkünse inline stil/script kullanımını kaldırın, script-src / style-src ayrıştırması yapın. Örnek: Content-Security-Policy: "default-src 'self'; script-src 'self' 'nonce-...'; style-src 'self' 'nonce-...';".
+X-XSS-Protection kaldırılabilir.
+Eğer cookie tabanlı auth kullanılacaksa Access-Control-Allow-Credentials: true ve frontend origin ile birlikte true ayarı kullanılmalı.
+getAllowedOrigins()’da environment kontrollü liste tutun (özellikle prod'da wildcard kullanmayın).
+Riskli admin utility HTTP rotaları
+Nerede: backend/routes/api.php
+/admin/run-migrations, /admin/clear-cache, /admin/link-storage (lines ~95-105)
+Risk / Etki:
+Bu rotalar admin'e kapalı olsa bile, web üzerinden migration çalıştırmak, dosya sistemi linklemek veya cache temizlemek üretimde riskli olabilir; yanlışlıkla tetiklenme, log zayıflığı veya kötü niyetle tetiklenme riski var.
+Öneri:
+Bu tür hosting/ops işlemlerini HTTP endpoint üzerinden sunmayın veya ekden bir (IP + MFA/operation key) koruması ekleyin. Alternatif: sadece CLI veya deploy pipeline ile çalıştırın. Eğer muhakkak HTTP üzerinden açılacaksa operation logu, rate limit ve ek authorization (2FA/operation password) ekleyin.
+Rota: storage dosya stream (path traversal kontrolü iyi ama dikkat)
+Nerede: backend/routes/api.php -> Route::get('/storage/{path}', ...)
+Kod realpath karşılaştırmasıyla basePath koruması sağlıyor (lines ~30-44).
+Değerlendirme:
+realpath karşılaştırması ve file_exists kontrolü iyi bir yaklaşım. Ancak:
+İzin kontrolü (ör. sadece public storage dosyalarını serve etmeye kesin sınır) net olmalı.
+Büyük/çok sayıda dosya transferlerinde resource kullanımı ve throttling düşünülmeli.
+Öneri:
+Serve işlemi için response()->file yerine web sunucu (nginx) ile X-Accel-Redirect/X-Sendfile kullanmak performanslıdır.
+Dosya erişim yetkilerini (paylaştığınız dosya türleri) kesinleştirin.
+Veri çekimleri / bellek kullanımı
+Nerede: AdminController::quotations() doğrudan ->get() (lines ~86-92)
+Risk / Etki:
+Eğer tablo büyükse ->get() tüm kayıtları belleğe çeker; bellek taşması (OOM) riski oluşur.
+Öneri:
+Pagination kullanın (->paginate()) veya chunk/stream ile işlemleri kısıtlayın.
+CSV export'larda zaten Customer::chunk(100, ...) ve WorkOrder::chunk(100, ...) kullanılmış — bu iyi. Benzer pattern diğer 'get all' metodlarda da uygulanmalı.
+İyi pratikler / code quality eksiklikleri
+Bulunanlar:
+backend/phpunit.xml var fakat tests/ dizini görünüşe göre boş (test coverage eksik).
+composer.lock ve package-lock.json repoda — normal. Ancak security audit yapılmalı.
+Öneri:
+Otomatik test yazımı (feature + unit) — öncelik Auth, Session, Quotation iş akışları.
+CI pipeline (GitHub Actions) ile PR’larda test + static analysis (PHPStan veya Psalm) çalıştırma.
+Dependabot veya benzeri otomatik package güncelleme/güvenlik bildirimleri kurun.
+Token depolama / frontend güvenliği
+Durum:
+AuthController token'ı JSON cevap içinde döndürüyor (body) -> frontend tarafı muhtemelen bu token'ı localStorage/sessionStorage veya memory'e koyuyor.
+Risk:
+localStorage XSS ile token sızdırılabilir.
+Öneri:
+Mümkünse HttpOnly, Secure cookie kullanın (CSRF koruması ile beraber) veya short-lived accesstoken + refresh token pattern (refresh cookie HttpOnly) uygulayın.
+Frontend tarafında XSS önlemleri, CSP (nonce/strict) konfigürasyonu yapılmalı.
+Güvenlik logging ve leakage
+Not:
+AuthController login başarısızlıklarını logluyor (kullanıcı adı, ip, user-agent) — bu genelde iyi. Fakat logların saklandığı yerin erişim izinlerini kontrol edin; loglarda hassas veri olmadığından emin olun.
+Öneri:
+Log dosyalarının rotation, erişim izni ve saklama politika(RETENTION) kuralları olsun.

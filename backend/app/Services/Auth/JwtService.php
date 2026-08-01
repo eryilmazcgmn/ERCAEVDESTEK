@@ -67,7 +67,10 @@ class JwtService
      */
     public function decode(string $token): ?array
     {
-        $this->ensureSecretValid();
+        if (!$this->secretValid) {
+            Log::warning('JWT decode attempted while secret is invalid or unconfigured.');
+            return null;
+        }
 
         try {
             $decoded = JWT::decode($token, new Key($this->secret, $this->algorithm));

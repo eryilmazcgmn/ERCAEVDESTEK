@@ -81,10 +81,18 @@ class AdminController extends Controller
     /**
      * Get all quotations.
      */
-    public function quotations(): JsonResponse
+    public function quotations(Request $request): JsonResponse
     {
         try {
-            $quotations = Quotation::with('customer')->orderBy('created_at', 'desc')->get();
+            $query = Quotation::with('customer')->orderBy('created_at', 'desc');
+            $perPage = $request->input('per_page');
+            
+            if ($perPage && is_numeric($perPage)) {
+                $quotations = $query->paginate((int) $perPage);
+            } else {
+                $quotations = $query->get();
+            }
+
             return response()->json([
                 'status' => true,
                 'message' => 'Teklifler getirildi.',
@@ -326,7 +334,7 @@ class AdminController extends Controller
     {
         try {
             $jwtUser = $request->attributes->get('jwt_user');
-            $userId = (int) ($jwtUser['id'] ?? 0);
+            $userId = (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
 
             $workOrders = $this->workOrderService->getTechnicianWorkOrders($userId);
 
@@ -354,7 +362,7 @@ class AdminController extends Controller
     {
         try {
             $jwtUser = $request->attributes->get('jwt_user');
-            $userId = (int) ($jwtUser['id'] ?? 0);
+            $userId = (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
             $validated = $request->validated();
 
             $workOrder = $this->workOrderService->updateTechnicianWorkOrderStatus(
