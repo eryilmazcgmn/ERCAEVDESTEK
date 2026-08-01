@@ -91,24 +91,24 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::get('/service-prices', [AdminController::class, 'getServicePrices']);
     Route::post('/service-prices/bulk-update', [AdminController::class, 'updateServicePrices']);
 
-    // Hosting utility routes — restricted in production unless explicitly authorized
-    Route::get('/link-storage', function (SettingService $settingService, Request $request) {
-        if (config('app.env') === 'production' && $request->query('key') !== config('app.key')) {
-            return response()->json(['status' => false, 'message' => 'Utility execution restricted in production.'], 403);
+    // Hosting utility routes — disabled in production completely (local/staging development only)
+    Route::get('/link-storage', function (SettingService $settingService) {
+        if (config('app.env') === 'production') {
+            return response()->json(['status' => false, 'message' => 'Utility execution disabled in production.'], 403);
         }
         return response()->json($settingService->linkStorage());
     });
 
-    Route::get('/run-migrations', function (SettingService $settingService, Request $request) {
-        if (config('app.env') === 'production' && $request->query('key') !== config('app.key')) {
-            return response()->json(['status' => false, 'message' => 'Utility execution restricted in production.'], 403);
+    Route::get('/run-migrations', function (SettingService $settingService) {
+        if (config('app.env') === 'production') {
+            return response()->json(['status' => false, 'message' => 'Utility execution disabled in production.'], 403);
         }
         return response()->json($settingService->runMigrations());
     });
 
-    Route::get('/clear-cache', function (SettingService $settingService, Request $request) {
-        if (config('app.env') === 'production' && $request->query('key') !== config('app.key')) {
-            return response()->json(['status' => false, 'message' => 'Utility execution restricted in production.'], 403);
+    Route::get('/clear-cache', function (SettingService $settingService) {
+        if (config('app.env') === 'production') {
+            return response()->json(['status' => false, 'message' => 'Utility execution disabled in production.'], 403);
         }
         return response()->json($settingService->clearCache());
     });

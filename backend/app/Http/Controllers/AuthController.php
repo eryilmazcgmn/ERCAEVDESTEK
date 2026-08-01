@@ -44,12 +44,22 @@ class AuthController extends Controller
             ], 401);
         }
 
-        $token = $this->jwtService->encode([
-            'id' => $user->id,
-            'user_id' => $user->id,
-            'role' => $user->role,
-            'username' => $user->username,
-        ]);
+        try {
+            $token = $this->jwtService->encode([
+                'id' => $user->id,
+                'user_id' => $user->id,
+                'role' => $user->role,
+                'username' => $user->username,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('JWT Encoding failed during login', ['exception' => $e->getMessage()]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Kimlik doğrulama servisi yapılandırma hatası. Lütfen yöneticiye bildirin.',
+                'data' => null,
+                'errors' => ['auth' => ['JWT yapılandırma hatası.']]
+            ], 500);
+        }
 
         Log::info('Login successful.', [
             'user_id' => $user->id,
@@ -100,12 +110,22 @@ class AuthController extends Controller
             ], 404);
         }
 
-        $newToken = $this->jwtService->encode([
-            'id' => $user->id,
-            'user_id' => $user->id,
-            'role' => $user->role,
-            'username' => $user->username,
-        ]);
+        try {
+            $newToken = $this->jwtService->encode([
+                'id' => $user->id,
+                'user_id' => $user->id,
+                'role' => $user->role,
+                'username' => $user->username,
+            ]);
+        } catch (\Throwable $e) {
+            Log::error('JWT Encoding failed during refresh', ['exception' => $e->getMessage()]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Token yenilenirken sunucu hatası oluştu.',
+                'data' => null,
+                'errors' => ['auth' => ['JWT yapılandırma hatası.']]
+            ], 500);
+        }
 
         return response()->json([
             'status' => true,
