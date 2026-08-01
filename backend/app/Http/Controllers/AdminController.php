@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Log;
+use App\Services\Auth\JwtService;
 use Exception;
 
 class AdminController extends Controller
@@ -85,12 +86,12 @@ class AdminController extends Controller
     {
         try {
             $query = Quotation::with('customer')->orderBy('created_at', 'desc');
-            $perPage = $request->input('per_page');
+            $perPage = (int) $request->input('per_page', 15);
             
-            if ($perPage && is_numeric($perPage)) {
-                $quotations = $query->paginate((int) $perPage);
-            } else {
+            if ($request->boolean('all')) {
                 $quotations = $query->get();
+            } else {
+                $quotations = $query->paginate(max(1, min(100, $perPage)));
             }
 
             return response()->json([
@@ -334,7 +335,7 @@ class AdminController extends Controller
     {
         try {
             $jwtUser = $request->attributes->get('jwt_user');
-            $userId = (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
+            $userId = JwtService::getUserId($jwtUser);
 
             $workOrders = $this->workOrderService->getTechnicianWorkOrders($userId);
 
@@ -362,7 +363,7 @@ class AdminController extends Controller
     {
         try {
             $jwtUser = $request->attributes->get('jwt_user');
-            $userId = (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
+            $userId = JwtService::getUserId($jwtUser);
             $validated = $request->validated();
 
             $workOrder = $this->workOrderService->updateTechnicianWorkOrderStatus(

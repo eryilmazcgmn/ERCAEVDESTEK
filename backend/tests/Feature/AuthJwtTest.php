@@ -4,6 +4,8 @@ namespace Tests\Feature;
 
 use Tests\TestCase;
 use App\Models\User;
+use App\Models\Quotation;
+use App\Models\Customer;
 use App\Services\Auth\JwtService;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
@@ -35,8 +37,7 @@ class AuthJwtTest extends TestCase
         $decoded = $jwtService->decode($token);
 
         $this->assertNotNull($decoded);
-        $this->assertEquals($user->id, $decoded['id'] ?? null);
-        $this->assertEquals($user->id, $decoded['user_id'] ?? null);
+        $this->assertEquals($user->id, JwtService::getUserId($decoded));
         $this->assertEquals('technician', $decoded['role'] ?? null);
     }
 
@@ -79,5 +80,68 @@ class AuthJwtTest extends TestCase
 
         $response->assertStatus(401)
             ->assertJsonPath('status', false);
+    }
+
+    public function test_admin_verify_token_endpoint(): void
+    {
+        $admin = User::factory()->create([
+            'username' => 'adminuser',
+            'password' => bcrypt('password123'),
+            'role' => 'admin',
+        ]);
+
+        /** @var JwtService $jwtService */
+        $jwtService = app(JwtService::class);
+        $token = $jwtService->encode([
+            'id' => $admin->id,
+            'user_id' => $admin->id,
+            'role' => 'admin',
+            'username' => $admin->username,
+        ]);
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/admin/verify-token');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', true)
+            ->assertJsonPath('message', 'Token geçerli.');
+    }
+
+    public function test_storage_stream_prevents_path_traversal(): void
+    {
+        $response = $this->getJson('/api/storage/../../.env');
+
+        $response->assertStatus(404)
+            ->assertJsonPath('status', false);
+    }
+
+    public function test_admin_quotations_default_pagination(): void
+    {
+        $admin = User::factory()->create(['username' => 'admin_user_' . rand(100, 999), 'role' => 'admin']);
+        $customer = Customer::create(['name' => 'Test Customer', 'phone' => '05551112233', 'status' => 'lead']);
+        Quotation::create([
+            'customer_id' => $customer->id,
+            'service_type' => 'kombi',
+            'quotation_number' => 'TEK-' . rand(1000, 9999),
+            'services' => ['kombi_bakimi'],
+            'total_price' => 1500,
+            'status' => 'pending',
+        ]);
+
+        /** @var JwtService $jwtService */
+        $jwtService = app(JwtService::class);
+        $token = $jwtService->encode([
+            'id' => $admin->id,
+            'user_id' => $admin->id,
+            'role' => 'admin',
+            'username' => $admin->username,
+        ]);
+
+        $response = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/admin/quotations');
+
+        $response->assertStatus(200)
+            ->assertJsonPath('status', true)
+            ->assertJsonStructure(['data' => ['data', 'current_page', 'total']]);
     }
 }

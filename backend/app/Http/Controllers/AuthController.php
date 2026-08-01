@@ -88,7 +88,7 @@ class AuthController extends Controller
     public function refresh(Request $request): JsonResponse
     {
         $jwtUser = $request->attributes->get('jwt_user');
-        $userId = (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
+        $userId = JwtService::getUserId($jwtUser);
 
         if (!$jwtUser || $userId <= 0) {
             return response()->json([

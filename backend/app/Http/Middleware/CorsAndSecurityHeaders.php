@@ -57,7 +57,7 @@ class CorsAndSecurityHeaders
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $response->headers->set('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' 'unsafe-inline' https:; script-src 'self' 'unsafe-inline'; object-src 'none'; frame-ancestors 'none';");
+        $response->headers->set('Content-Security-Policy', "default-src 'self'; img-src 'self' data: blob: https:; style-src 'self' https:; script-src 'self'; object-src 'none'; frame-ancestors 'none';");
 
         return $response;
     }

@@ -31,35 +31,43 @@ class JwtService
     }
 
     /**
-     * Ensure the JWT secret is valid before performing operations.
-     *
-     * @throws \RuntimeException if secret is not configured or too short
+     * Helper to extract canonical user ID from decoded JWT payload array.
      */
-    private function ensureSecretValid(): void
+    public static function getUserId(?array $jwtUser): int
     {
-        if (!$this->secretValid) {
-            throw new \RuntimeException('JWT_SECRET must be configured with at least 32 characters in .env.');
+        if (!$jwtUser) {
+            return 0;
         }
+
+        return (int) ($jwtUser['id'] ?? $jwtUser['user_id'] ?? 0);
     }
 
     /**
-     * Encode a payload into a JWT string.
+     * Encode a payload into a JWT string. Returns null if secret is invalid.
      */
-    public function encode(array $payload, ?int $expirySeconds = null): string
+    public function encode(array $payload, ?int $expirySeconds = null): ?string
     {
-        $this->ensureSecretValid();
+        if (!$this->secretValid) {
+            Log::error('JWT encode failed: JWT_SECRET is not configured or is too short (min 32 chars). Check .env.');
+            return null;
+        }
 
-        $issuedAt = time();
-        $expire = $issuedAt + ($expirySeconds ?? $this->ttl);
+        try {
+            $issuedAt = time();
+            $expire = $issuedAt + ($expirySeconds ?? $this->ttl);
 
-        $jwtPayload = array_merge([
-            'iss' => config('app.url', 'http://localhost'),
-            'aud' => config('app.url', 'http://localhost'),
-            'iat' => $issuedAt,
-            'exp' => $expire,
-        ], $payload);
+            $jwtPayload = array_merge([
+                'iss' => config('app.url', 'http://localhost'),
+                'aud' => config('app.url', 'http://localhost'),
+                'iat' => $issuedAt,
+                'exp' => $expire,
+            ], $payload);
 
-        return JWT::encode($jwtPayload, $this->secret, $this->algorithm);
+            return JWT::encode($jwtPayload, $this->secret, $this->algorithm);
+        } catch (Exception $e) {
+            Log::error('JWT encode exception', ['exception' => $e]);
+            return null;
+        }
     }
 
     /**

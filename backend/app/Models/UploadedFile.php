@@ -32,7 +32,8 @@ class UploadedFile extends Model
      */
     public function getUrlAttribute(): string
     {
-        return url('storage/uploads/' . basename($this->file_path));
+        $safeName = rawurlencode(basename($this->file_path));
+        return url('storage/uploads/' . $safeName);
     }
 }
 
