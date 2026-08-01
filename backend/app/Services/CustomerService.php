@@ -97,6 +97,11 @@ class CustomerService
                 'role' => 'customer'
             ]);
 
+            if ($token === null) {
+                Log::error('Failed to create session JWT token: JWT_SECRET misconfigured.');
+                throw new \RuntimeException('Session token creation failed due to server configuration.');
+            }
+
             return [
                 'session_id' => $sessionId,
                 'token' => $token,
