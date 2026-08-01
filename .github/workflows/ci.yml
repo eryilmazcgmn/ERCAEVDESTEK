@@ -1,0 +1,48 @@
+name: CI
+
+on: [push, pull_request]
+
+jobs:
+  backend-tests:
+    runs-on: ubuntu-latest
+    services:
+      mysql:
+        image: mysql:8
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: test
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd "mysqladmin ping --silent"
+          --health-interval 10s
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+      - name: Install composer dependencies
+        run: |
+          composer install --working-dir=backend --no-progress --prefer-dist
+      - name: Prepare env
+        run: |
+          cp backend/.env.example backend/.env
+          php -r "file_put_contents('backend/.env', str_replace('DB_DATABASE=', 'DB_DATABASE=test', file_get_contents('backend/.env')));"
+      - name: Run phpunit
+        run: |
+          cd backend
+          ./vendor/bin/phpunit --testdox
+
+  frontend-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install and build
+        run: |
+          cd frontend
+          npm ci
+          npm run build

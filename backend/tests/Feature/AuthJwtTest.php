@@ -142,6 +142,6 @@ class AuthJwtTest extends TestCase
 
         $response->assertStatus(200)
             ->assertJsonPath('status', true)
-            ->assertJsonStructure(['data' => ['data', 'current_page', 'total']]);
+            ->assertJsonStructure(['data', 'meta' => ['current_page', 'total']]);
     }
 }

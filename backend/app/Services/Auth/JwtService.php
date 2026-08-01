@@ -16,6 +16,19 @@ class JwtService
     protected int $ttl;
     protected bool $secretValid;
 
+    public function isSecretValid(): bool
+    {
+        return $this->secretValid;
+    }
+
+    /**
+     * Extract canonical user id from decoded JWT payload.
+     */
+    public function extractUserId(array $decoded): int
+    {
+        return (int) ($decoded['id'] ?? $decoded['user_id'] ?? 0);
+    }
+
     public function __construct()
     {
         $this->secret = config('services.jwt.secret', '');

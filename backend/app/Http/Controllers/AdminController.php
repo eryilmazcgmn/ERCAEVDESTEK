@@ -24,11 +24,13 @@ class AdminController extends Controller
 {
     protected WorkOrderService $workOrderService;
     protected CustomerService $customerService;
+    protected JwtService $jwtService;
 
-    public function __construct(WorkOrderService $workOrderService, CustomerService $customerService)
+    public function __construct(WorkOrderService $workOrderService, CustomerService $customerService, JwtService $jwtService)
     {
         $this->workOrderService = $workOrderService;
         $this->customerService = $customerService;
+        $this->jwtService = $jwtService;
     }
 
     /**
@@ -90,16 +92,27 @@ class AdminController extends Controller
             
             if ($request->boolean('all')) {
                 $quotations = $query->get();
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Teklifler getirildi.',
+                    'data' => $quotations,
+                    'errors' => null
+                ], 200);
             } else {
                 $quotations = $query->paginate(max(1, min(100, $perPage)));
+                return response()->json([
+                    'status' => true,
+                    'message' => 'Teklifler getirildi.',
+                    'data' => $quotations->items(),
+                    'meta' => [
+                        'current_page' => $quotations->currentPage(),
+                        'last_page' => $quotations->lastPage(),
+                        'per_page' => $quotations->perPage(),
+                        'total' => $quotations->total(),
+                    ],
+                    'errors' => null
+                ], 200);
             }
-
-            return response()->json([
-                'status' => true,
-                'message' => 'Teklifler getirildi.',
-                'data' => $quotations,
-                'errors' => null
-            ], 200);
         } catch (Exception $e) {
             Log::error('Admin quotations list error', ['exception' => $e]);
             return response()->json([
@@ -334,8 +347,8 @@ class AdminController extends Controller
     public function technicianWorkOrders(Request $request): JsonResponse
     {
         try {
-            $jwtUser = $request->attributes->get('jwt_user');
-            $userId = JwtService::getUserId($jwtUser);
+            $jwtUser = (array) $request->attributes->get('jwt_user', []);
+            $userId = $this->jwtService->extractUserId($jwtUser);
 
             $workOrders = $this->workOrderService->getTechnicianWorkOrders($userId);
 
@@ -362,8 +375,8 @@ class AdminController extends Controller
     public function updateTechnicianWorkOrderStatus(UpdateWorkOrderStatusRequest $request, int $id): JsonResponse
     {
         try {
-            $jwtUser = $request->attributes->get('jwt_user');
-            $userId = JwtService::getUserId($jwtUser);
+            $jwtUser = (array) $request->attributes->get('jwt_user', []);
+            $userId = $this->jwtService->extractUserId($jwtUser);
             $validated = $request->validated();
 
             $workOrder = $this->workOrderService->updateTechnicianWorkOrderStatus(

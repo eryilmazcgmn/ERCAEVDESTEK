@@ -44,6 +44,16 @@ class AuthController extends Controller
             ], 401);
         }
 
+        if (! $this->jwtService->isSecretValid()) {
+            Log::error('JWT secret is not configured or too short. Cannot create token.');
+            return response()->json([
+                'status' => false,
+                'message' => 'Sunucu yapılandırma hatası: kimlik doğrulama servisi eksik.',
+                'data' => null,
+                'errors' => ['server' => ['Authentication configuration invalid. Contact admin.']]
+            ], 500);
+        }
+
         try {
             $token = $this->jwtService->encode([
                 'id' => $user->id,
@@ -87,8 +97,8 @@ class AuthController extends Controller
      */
     public function refresh(Request $request): JsonResponse
     {
-        $jwtUser = $request->attributes->get('jwt_user');
-        $userId = JwtService::getUserId($jwtUser);
+        $jwtUser = (array) $request->attributes->get('jwt_user', []);
+        $userId = $this->jwtService->extractUserId($jwtUser);
 
         if (!$jwtUser || $userId <= 0) {
             return response()->json([
@@ -108,6 +118,16 @@ class AuthController extends Controller
                 'data' => null,
                 'errors' => null
             ], 404);
+        }
+
+        if (! $this->jwtService->isSecretValid()) {
+            Log::error('JWT secret is not configured or too short. Cannot create token.');
+            return response()->json([
+                'status' => false,
+                'message' => 'Sunucu yapılandırma hatası: kimlik doğrulama servisi eksik.',
+                'data' => null,
+                'errors' => ['server' => ['Authentication configuration invalid. Contact admin.']]
+            ], 500);
         }
 
         try {

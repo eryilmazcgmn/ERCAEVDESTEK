@@ -28,6 +28,7 @@ Route::middleware(['throttle:30,1'])->group(function () {
 });
 
 // Storage Stream with Path Traversal Protection
+// NOTE: In production, consider using X-Accel-Redirect (Nginx) or X-Sendfile (Apache) for better performance.
 Route::get('/storage/{path}', function ($path) {
     $basePath = storage_path('app/public');
     $filePath = $basePath . '/' . ltrim($path, '/\\');
@@ -91,18 +92,31 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::get('/service-prices', [AdminController::class, 'getServicePrices']);
     Route::post('/service-prices/bulk-update', [AdminController::class, 'updateServicePrices']);
 
-    // Hosting utility routes — strictly registered ONLY in local/staging environments (not defined in production)
-    if (config('app.env') !== 'production') {
-        Route::get('/link-storage', function (SettingService $settingService) {
-            return response()->json($settingService->linkStorage());
-        });
+    // Hosting utility routes — protected by ADMIN_OPERATION_SECRET
+    Route::get('/link-storage', function (SettingService $settingService, Request $request) {
+        $opKey = $request->header('X-OPERATION-KEY') ?? $request->query('op_key');
+        if (config('app.env') !== 'local' && env('ADMIN_OPERATION_SECRET') && $opKey !== env('ADMIN_OPERATION_SECRET')) {
+            \Illuminate\Support\Facades\Log::warning('Unauthorized operation attempt', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
+            return response()->json(['status' => false, 'message' => 'Unauthorized operation'], 403);
+        }
+        return response()->json($settingService->linkStorage());
+    });
 
-        Route::get('/run-migrations', function (SettingService $settingService) {
-            return response()->json($settingService->runMigrations());
-        });
+    Route::get('/run-migrations', function (SettingService $settingService, Request $request) {
+        $opKey = $request->header('X-OPERATION-KEY') ?? $request->query('op_key');
+        if (config('app.env') !== 'local' && env('ADMIN_OPERATION_SECRET') && $opKey !== env('ADMIN_OPERATION_SECRET')) {
+            \Illuminate\Support\Facades\Log::warning('Unauthorized operation attempt', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
+            return response()->json(['status' => false, 'message' => 'Unauthorized operation'], 403);
+        }
+        return response()->json($settingService->runMigrations());
+    });
 
-        Route::get('/clear-cache', function (SettingService $settingService) {
-            return response()->json($settingService->clearCache());
-        });
-    }
+    Route::get('/clear-cache', function (SettingService $settingService, Request $request) {
+        $opKey = $request->header('X-OPERATION-KEY') ?? $request->query('op_key');
+        if (config('app.env') !== 'local' && env('ADMIN_OPERATION_SECRET') && $opKey !== env('ADMIN_OPERATION_SECRET')) {
+            \Illuminate\Support\Facades\Log::warning('Unauthorized operation attempt', ['uri' => $request->getRequestUri(), 'ip' => $request->ip()]);
+            return response()->json(['status' => false, 'message' => 'Unauthorized operation'], 403);
+        }
+        return response()->json($settingService->clearCache());
+    });
 });
