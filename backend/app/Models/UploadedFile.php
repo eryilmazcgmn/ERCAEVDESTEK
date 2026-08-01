@@ -25,5 +25,14 @@ class UploadedFile extends Model
     {
         return $this->belongsTo(Conversation::class);
     }
+
+    /**
+     * Generate the full public URL for this uploaded file.
+     * Relies on storage:link symlink being configured.
+     */
+    public function getUrlAttribute(): string
+    {
+        return url('storage/uploads/' . basename($this->file_path));
+    }
 }
 

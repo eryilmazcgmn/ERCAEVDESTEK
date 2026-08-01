@@ -54,7 +54,7 @@ class SessionController extends Controller
      */
     public function updateContact(UpdateContactRequest $request, string $sessionId): JsonResponse
     {
-        $jwtUser = $request->input('jwt_user');
+        $jwtUser = $request->attributes->get('jwt_user');
         if (($jwtUser['role'] ?? '') !== 'admin') {
             if (($jwtUser['session_id'] ?? '') !== $sessionId) {
                 return response()->json([
@@ -91,7 +91,7 @@ class SessionController extends Controller
      */
     public function upload(Request $request, string $sessionId): JsonResponse
     {
-        $jwtUser = $request->input('jwt_user');
+        $jwtUser = $request->attributes->get('jwt_user');
         if (($jwtUser['role'] ?? '') !== 'admin') {
             if (($jwtUser['session_id'] ?? '') !== $sessionId) {
                 return response()->json([
@@ -116,7 +116,7 @@ class SessionController extends Controller
                 'message' => 'Fotoğraf başarıyla yüklendi.',
                 'data' => [
                     'file_id' => $uploadedFile->id,
-                    'file_path' => url('storage/uploads/' . basename($uploadedFile->file_path)),
+                    'file_path' => $uploadedFile->url,
                     'file_type' => $uploadedFile->file_type,
                 ],
                 'errors' => null
@@ -137,7 +137,7 @@ class SessionController extends Controller
      */
     public function declareDeposit(Request $request, string $sessionId): JsonResponse
     {
-        $jwtUser = $request->input('jwt_user');
+        $jwtUser = $request->attributes->get('jwt_user');
         if (($jwtUser['role'] ?? '') !== 'admin') {
             if (($jwtUser['session_id'] ?? '') !== $sessionId) {
                 return response()->json([

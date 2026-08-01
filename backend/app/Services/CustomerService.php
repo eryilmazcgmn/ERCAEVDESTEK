@@ -160,9 +160,14 @@ class CustomerService
             $conversation = Conversation::where('session_id', $sessionId)->firstOrFail();
 
             // Validate real MIME type using finfo (file content inspection, not client-provided)
-            $finfo = finfo_open(FILEINFO_MIME_TYPE);
-            $realMime = finfo_file($finfo, $file->getPathname());
-            finfo_close($finfo);
+            if (function_exists('finfo_open')) {
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $realMime = finfo_file($finfo, $file->getPathname());
+                finfo_close($finfo);
+            } else {
+                Log::warning('ext-fileinfo not available, falling back to client-provided MIME type. Install ext-fileinfo for stronger upload security.');
+                $realMime = $file->getMimeType();
+            }
 
             $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
             if (!in_array($realMime, $allowedMimes, true)) {

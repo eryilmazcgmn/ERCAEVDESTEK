@@ -42,6 +42,7 @@ class SettingController extends Controller
     {
         try {
             $data = $request->all();
+            // jwt_user is stored in request attributes (not input), but unset defensively
             unset($data['jwt_user'], $data['logo']);
 
             if ($request->hasFile('logo')) {

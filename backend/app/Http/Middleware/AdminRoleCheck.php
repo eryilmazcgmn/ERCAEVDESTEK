@@ -16,7 +16,7 @@ class AdminRoleCheck
      */
     public function handle(Request $request, Closure $next): Response
     {
-        $jwtUser = $request->input('jwt_user');
+        $jwtUser = $request->attributes->get('jwt_user');
 
         if (!$jwtUser || ($jwtUser['role'] ?? '') !== 'admin') {
             Log::warning('Unauthorized admin access attempt.', [

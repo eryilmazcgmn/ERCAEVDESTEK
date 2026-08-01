@@ -46,7 +46,7 @@ class JwtAuthenticate
             ], 401);
         }
 
-        $request->merge(['jwt_user' => $decoded]);
+        $request->attributes->set('jwt_user', $decoded);
 
         return $next($request);
     }

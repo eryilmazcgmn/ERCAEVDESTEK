@@ -317,7 +317,7 @@ class AdminController extends Controller
     public function technicianWorkOrders(Request $request): JsonResponse
     {
         try {
-            $jwtUser = $request->input('jwt_user');
+            $jwtUser = $request->attributes->get('jwt_user');
             $userId = (int) ($jwtUser['id'] ?? 0);
 
             $workOrders = $this->workOrderService->getTechnicianWorkOrders($userId);
@@ -344,7 +344,7 @@ class AdminController extends Controller
     public function updateTechnicianWorkOrderStatus(UpdateWorkOrderStatusRequest $request, int $id): JsonResponse
     {
         try {
-            $jwtUser = $request->input('jwt_user');
+            $jwtUser = $request->attributes->get('jwt_user');
             $userId = (int) ($jwtUser['id'] ?? 0);
             $validated = $request->validated();
 

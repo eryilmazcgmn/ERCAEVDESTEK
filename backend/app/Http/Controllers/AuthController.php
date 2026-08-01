@@ -76,7 +76,7 @@ class AuthController extends Controller
      */
     public function refresh(Request $request): JsonResponse
     {
-        $jwtUser = $request->input('jwt_user');
+        $jwtUser = $request->attributes->get('jwt_user');
 
         if (!$jwtUser || empty($jwtUser['user_id'])) {
             return response()->json([
