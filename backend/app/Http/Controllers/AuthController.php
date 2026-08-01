@@ -71,6 +71,16 @@ class AuthController extends Controller
             ], 500);
         }
 
+        if ($token === null) {
+            Log::error('JWT encode returned null despite secret being valid. Check JWT service configuration.');
+            return response()->json([
+                'status' => false,
+                'message' => 'Token oluşturulamadı. Sunucu hatası.',
+                'data' => null,
+                'errors' => ['server' => ['Token üretimi başarısız.']]
+            ], 500);
+        }
+
         Log::info('Login successful.', [
             'user_id' => $user->id,
             'username' => $user->username,
@@ -144,6 +154,16 @@ class AuthController extends Controller
                 'message' => 'Token yenilenirken sunucu hatası oluştu.',
                 'data' => null,
                 'errors' => ['auth' => ['JWT yapılandırma hatası.']]
+            ], 500);
+        }
+
+        if ($newToken === null) {
+            Log::error('JWT encode returned null despite secret being valid. Check JWT service configuration.');
+            return response()->json([
+                'status' => false,
+                'message' => 'Token oluşturulamadı. Sunucu hatası.',
+                'data' => null,
+                'errors' => ['server' => ['Token üretimi başarısız.']]
             ], 500);
         }
 

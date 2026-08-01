@@ -39,5 +39,11 @@ class QuotationPaginationTest extends TestCase
                 'last_page'
             ]
         ]);
+
+        $responseDefault = $this->withHeader('Authorization', 'Bearer ' . $token)
+            ->getJson('/api/admin/quotations');
+        $responseDefault->assertStatus(200);
+        $this->assertEquals(1, $responseDefault->json('meta.current_page'));
+        $this->assertLessThanOrEqual(50, count($responseDefault->json('data')));
     }
 }

@@ -88,7 +88,7 @@ class AdminController extends Controller
     {
         try {
             $query = Quotation::with('customer')->orderBy('created_at', 'desc');
-            $perPage = (int) $request->input('per_page', 15);
+            $perPage = (int) min(max(1, (int) $request->input('per_page', 50)), 200);
             
             if ($request->boolean('all')) {
                 $quotations = $query->get();

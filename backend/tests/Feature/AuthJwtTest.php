@@ -31,13 +31,15 @@ class AuthJwtTest extends TestCase
             ->assertJsonStructure(['data' => ['token', 'user_id', 'role']]);
 
         $token = $response->json('data.token');
-        
+        $this->assertIsString($token);
+        $this->assertNotEmpty($token);
+
         /** @var JwtService $jwtService */
         $jwtService = app(JwtService::class);
         $decoded = $jwtService->decode($token);
 
         $this->assertNotNull($decoded);
-        $this->assertEquals($user->id, JwtService::getUserId($decoded));
+        $this->assertEquals($user->id, $decoded['id'] ?? $decoded['user_id'] ?? null);
         $this->assertEquals('technician', $decoded['role'] ?? null);
     }
 

@@ -57,9 +57,10 @@ class CorsAndSecurityHeaders
         $response->headers->set('X-Frame-Options', 'DENY');
         $response->headers->set('X-Content-Type-Options', 'nosniff');
         $response->headers->set('Referrer-Policy', 'strict-origin-when-cross-origin');
-        $csp = "default-src 'self'; script-src 'self' https:; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;";
         if (config('app.env') === 'local') {
-            $csp .= " connect-src 'self' http://localhost:5173 ws://localhost:5173;";
+            $csp = "default-src 'self'; script-src 'self' https: 'unsafe-eval' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' http://localhost:5173 ws://localhost:5173 https:;";
+        } else {
+            $csp = "default-src 'self'; script-src 'self' https:; style-src 'self' https:; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:;";
         }
         $response->headers->set('Content-Security-Policy', $csp);
 
