@@ -32,7 +32,7 @@ function AppRoutes() {
     if (admin.isTechnicianMode && location.pathname === '/') {
       navigate('/technician', { replace: true });
     }
-  }, [admin.isAdminMode, admin.isTechnicianMode]);
+  }, [admin.isAdminMode, admin.isTechnicianMode, navigate, location.pathname]);
 
   return (
     <Routes>

@@ -11,6 +11,7 @@ use App\Services\Auth\JwtService;
 use Illuminate\Http\UploadedFile as HttpUploadedFile;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Exception;
 
 class CustomerService
@@ -23,13 +24,37 @@ class CustomerService
     }
 
     /**
+     * Normalize a Turkish phone number to a consistent format.
+     * Strips whitespace, dashes, parentheses, and normalizes country code prefixes.
+     */
+    private function normalizePhone(?string $phone): ?string
+    {
+        if ($phone === null || $phone === 'anonymous') {
+            return $phone;
+        }
+
+        // Remove whitespace, dashes, parentheses
+        $phone = preg_replace('/[\s\-\(\)]+/', '', $phone);
+
+        // Normalize +90 / 0090 prefix to leading 0
+        $phone = preg_replace('/^(\+90|0090)/', '0', $phone);
+
+        // If 10 digits starting with non-zero, prepend 0
+        if (preg_match('/^[1-9]\d{9}$/', $phone)) {
+            $phone = '0' . $phone;
+        }
+
+        return $phone;
+    }
+
+    /**
      * Start a new customer support session.
      */
     public function startSession(array $data): array
     {
         return DB::transaction(function () use ($data) {
-            $sessionId = 'SES_' . uniqid() . '_' . rand(100, 999);
-            $phone = $data['phone'] ?? null;
+            $sessionId = 'SES_' . Str::uuid()->toString();
+            $phone = $this->normalizePhone($data['phone'] ?? null);
             $name = !empty($data['name']) ? $data['name'] : 'Misafir Müşteri';
             $utmSource = $data['utm_source'] ?? null;
             $utmMedium = $data['utm_medium'] ?? null;
@@ -89,7 +114,7 @@ class CustomerService
         return DB::transaction(function () use ($sessionId, $data) {
             $conversation = Conversation::where('session_id', $sessionId)->firstOrFail();
 
-            $phone = $data['phone'];
+            $phone = $this->normalizePhone($data['phone']);
             $name = $data['name'];
             $email = $data['email'] ?? null;
             $address = $data['address'];
@@ -134,7 +159,22 @@ class CustomerService
         return DB::transaction(function () use ($sessionId, $file) {
             $conversation = Conversation::where('session_id', $sessionId)->firstOrFail();
 
-            $mimeType = $file->getMimeType();
+            // Validate real MIME type using finfo (file content inspection, not client-provided)
+            $finfo = finfo_open(FILEINFO_MIME_TYPE);
+            $realMime = finfo_file($finfo, $file->getPathname());
+            finfo_close($finfo);
+
+            $allowedMimes = ['image/jpeg', 'image/png', 'image/webp', 'application/pdf'];
+            if (!in_array($realMime, $allowedMimes, true)) {
+                Log::warning('Upload rejected: invalid MIME type', [
+                    'session_id' => $sessionId,
+                    'detected_mime' => $realMime,
+                    'client_mime' => $file->getMimeType(),
+                ]);
+                throw new \RuntimeException('Geçersiz dosya türü: yalnızca JPEG, PNG, WebP ve PDF kabul edilmektedir.');
+            }
+
+            $mimeType = $realMime;
             $fileSize = $file->getSize();
 
             $mimeToExt = [

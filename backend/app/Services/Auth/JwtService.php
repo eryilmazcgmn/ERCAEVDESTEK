@@ -14,6 +14,7 @@ class JwtService
     protected string $secret;
     protected string $algorithm;
     protected int $ttl;
+    protected bool $secretValid;
 
     public function __construct()
     {
@@ -22,7 +23,21 @@ class JwtService
         $this->ttl = config('services.jwt.ttl', 86400);
 
         if (empty($this->secret) || strlen($this->secret) < 32) {
-            Log::emergency('JWT_SECRET is not configured or is too short (min 32 chars). Check .env and config/services.php.');
+            Log::warning('JWT_SECRET is not configured or is too short (min 32 chars). JWT operations will fail until configured. Check .env and config/services.php.');
+            $this->secretValid = false;
+        } else {
+            $this->secretValid = true;
+        }
+    }
+
+    /**
+     * Ensure the JWT secret is valid before performing operations.
+     *
+     * @throws \RuntimeException if secret is not configured or too short
+     */
+    private function ensureSecretValid(): void
+    {
+        if (!$this->secretValid) {
             throw new \RuntimeException('JWT_SECRET must be configured with at least 32 characters in .env.');
         }
     }
@@ -32,6 +47,8 @@ class JwtService
      */
     public function encode(array $payload, ?int $expirySeconds = null): string
     {
+        $this->ensureSecretValid();
+
         $issuedAt = time();
         $expire = $issuedAt + ($expirySeconds ?? $this->ttl);
 
@@ -50,11 +67,14 @@ class JwtService
      */
     public function decode(string $token): ?array
     {
+        $this->ensureSecretValid();
+
         try {
             $decoded = JWT::decode($token, new Key($this->secret, $this->algorithm));
             return (array) $decoded;
         } catch (Exception $e) {
-            Log::warning('JWT verification failed: ' . $e->getMessage(), [
+            Log::warning('JWT verification failed', [
+                'exception' => $e,
                 'token_snippet' => substr($token, 0, 15) . '...'
             ]);
             return null;

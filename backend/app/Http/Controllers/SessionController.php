@@ -39,12 +39,12 @@ class SessionController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Failed to start session: ' . $e->getMessage());
+            Log::error('Failed to start session', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Oturum başlatılırken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -76,12 +76,12 @@ class SessionController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Failed to update contact: ' . $e->getMessage());
+            Log::error('Failed to update contact', ['exception' => $e, 'session_id' => $sessionId]);
             return response()->json([
                 'status' => false,
                 'message' => 'İletişim bilgileri güncellenirken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -116,18 +116,18 @@ class SessionController extends Controller
                 'message' => 'Fotoğraf başarıyla yüklendi.',
                 'data' => [
                     'file_id' => $uploadedFile->id,
-                    'file_path' => asset($uploadedFile->file_path),
+                    'file_path' => url('storage/uploads/' . basename($uploadedFile->file_path)),
                     'file_type' => $uploadedFile->file_type,
                 ],
                 'errors' => null
             ], 201);
         } catch (Exception $e) {
-            Log::error('Upload processing failed: ' . $e->getMessage());
+            Log::error('Upload processing failed', ['exception' => $e, 'session_id' => $sessionId]);
             return response()->json([
                 'status' => false,
-                'message' => 'Fotoğraf yüklenirken hata oluştu: ' . $e->getMessage(),
+                'message' => 'Fotoğraf yüklenirken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['upload' => [$e->getMessage()]]
+                'errors' => ['upload' => ['Dosya yüklenemedi. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -184,12 +184,12 @@ class SessionController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Failed to declare deposit: ' . $e->getMessage());
+            Log::error('Failed to declare deposit', ['exception' => $e, 'session_id' => $sessionId]);
             return response()->json([
                 'status' => false,
                 'message' => 'Ödeme bildirimi kaydedilirken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
