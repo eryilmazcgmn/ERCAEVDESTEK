@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\Log;
 use Exception;
 
 class SettingController extends Controller
@@ -29,11 +30,12 @@ class SettingController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Failed to load settings', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Ayarlar yüklenemedi.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -67,11 +69,12 @@ class SettingController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Failed to update settings', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Ayarlar güncellenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['settings' => [$e->getMessage()]]
+                'errors' => ['settings' => ['Ayarlar güncellenemedi. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -96,11 +99,12 @@ class SettingController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Failed to get bank info', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Banka bilgileri alınırken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }

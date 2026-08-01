@@ -67,7 +67,7 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::get('/verify-token', function (Request $request) {
         return response()->json([
             'status' => true,
-            'user' => $request->input('jwt_user'),
+            'user' => $request->attributes->get('jwt_user'),
             'message' => 'Token geçerli.'
         ]);
     });

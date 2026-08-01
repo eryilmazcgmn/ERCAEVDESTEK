@@ -38,11 +38,12 @@ class QuotationController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Failed to calculate price', ['exception' => $e]);
             return response()->json([
                 'status' => false,
-                'message' => 'Fiyat hesaplanırken hata: ' . $e->getMessage(),
+                'message' => 'Fiyat hesaplanırken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['calculation' => [$e->getMessage()]]
+                'errors' => ['calculation' => ['Fiyat hesaplanamadı. Lütfen tekrar deneyin.']]
             ], 400);
         }
     }
@@ -72,12 +73,12 @@ class QuotationController extends Controller
                 'errors' => null
             ], 201);
         } catch (Exception $e) {
-            Log::error('Failed to create quotation: ' . $e->getMessage());
+            Log::error('Failed to create quotation', ['exception' => $e, 'session_id' => $sessionId]);
             return response()->json([
                 'status' => false,
-                'message' => 'Teklif oluşturulurken bir hata oluştu: ' . $e->getMessage(),
+                'message' => 'Teklif oluşturulurken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['quotation' => [$e->getMessage()]]
+                'errors' => ['quotation' => ['Teklif oluşturulamadı. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -103,12 +104,12 @@ class QuotationController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Failed to approve quotation: ' . $e->getMessage());
+            Log::error('Failed to approve quotation', ['exception' => $e, 'quotation_id' => $quotationId]);
             return response()->json([
                 'status' => false,
-                'message' => 'Teklif onaylanırken bir hata oluştu: ' . $e->getMessage(),
+                'message' => 'Teklif onaylanırken bir hata oluştu.',
                 'data' => null,
-                'errors' => ['approval' => [$e->getMessage()]]
+                'errors' => ['approval' => ['Teklif onaylanamadı. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -128,12 +129,12 @@ class QuotationController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Failed to get tracking info: ' . $e->getMessage());
+            Log::error('Failed to get tracking info', ['exception' => $e, 'session_id' => $sessionId]);
             return response()->json([
                 'status' => false,
                 'message' => 'Takip bilgisi bulunamadı veya oturum geçersiz.',
                 'data' => null,
-                'errors' => ['tracking' => [$e->getMessage()]]
+                'errors' => ['tracking' => ['Takip bilgisi alınamadı.']]
             ], 404);
         }
     }
@@ -153,12 +154,12 @@ class QuotationController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Failed to get tracking info by phone: ' . $e->getMessage());
+            Log::error('Failed to get tracking info by phone', ['exception' => $e, 'phone' => $phone]);
             return response()->json([
                 'status' => false,
                 'message' => 'Bu telefon numarasına ait sipariş bulunamadı.',
                 'data' => null,
-                'errors' => ['tracking' => [$e->getMessage()]]
+                'errors' => ['tracking' => ['Takip bilgisi alınamadı.']]
             ], 404);
         }
     }

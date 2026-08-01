@@ -44,12 +44,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
-            Log::error('Admin dashboardStats error: ' . $e->getMessage());
+            Log::error('Admin dashboardStats error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'İstatistikler yüklenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -68,11 +68,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin customers list error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Müşteriler alınırken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -91,11 +92,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin quotations list error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Teklifler yüklenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -114,11 +116,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin workOrders list error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'İş emirleri yüklenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -137,11 +140,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin updateWorkOrderStatus error', ['exception' => $e, 'work_order_id' => $id]);
             return response()->json([
                 'status' => false,
-                'message' => 'İş emri durumu güncellenemedi: ' . $e->getMessage(),
+                'message' => 'İş emri durumu güncellenemedi.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Güncelleme başarısız oldu.']]
             ], 400);
         }
     }
@@ -227,11 +231,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin technicians list error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Teknisyenler alınırken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -250,11 +255,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 201);
         } catch (Exception $e) {
+            Log::error('Admin createTechnician error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
-                'message' => $e->getMessage(),
+                'message' => 'Teknisyen hesabı oluşturulamadı.',
                 'data' => null,
-                'errors' => ['technician' => [$e->getMessage()]]
+                'errors' => ['technician' => ['Hesap oluşturma başarısız oldu.']]
             ], 400);
         }
     }
@@ -273,11 +279,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin deleteTechnician error', ['exception' => $e, 'technician_id' => $id]);
             return response()->json([
                 'status' => false,
                 'message' => 'Teknisyen silinirken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Silme işlemi başarısız.']]
             ], 500);
         }
     }
@@ -302,11 +309,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin assignTechnician error', ['exception' => $e, 'work_order_id' => $id]);
             return response()->json([
                 'status' => false,
-                'message' => 'Teknisyen atanamadı: ' . $e->getMessage(),
+                'message' => 'Teknisyen atanamadı.',
                 'data' => null,
-                'errors' => ['assign' => [$e->getMessage()]]
+                'errors' => ['assign' => ['Atama işlemi başarısız oldu.']]
             ], 500);
         }
     }
@@ -329,11 +337,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Technician work orders list error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'İş emirleri yüklenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -363,11 +372,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Technician updateWorkOrderStatus error', ['exception' => $e, 'work_order_id' => $id]);
             return response()->json([
                 'status' => false,
-                'message' => 'İş emri güncellenirken hata oluştu: ' . $e->getMessage(),
+                'message' => 'İş emri güncellenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['update' => [$e->getMessage()]]
+                'errors' => ['update' => ['Güncelleme başarısız oldu.']]
             ], 500);
         }
     }
@@ -386,11 +396,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin getServicePrices error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Hizmet fiyatları yüklenemedi.',
                 'data' => null,
-                'errors' => ['server' => [$e->getMessage()]]
+                'errors' => ['server' => ['Sunucu hatası. Lütfen tekrar deneyin.']]
             ], 500);
         }
     }
@@ -409,11 +420,12 @@ class AdminController extends Controller
                 'errors' => null
             ], 200);
         } catch (Exception $e) {
+            Log::error('Admin updateServicePrices error', ['exception' => $e]);
             return response()->json([
                 'status' => false,
                 'message' => 'Fiyatlar güncellenirken hata oluştu.',
                 'data' => null,
-                'errors' => ['prices' => [$e->getMessage()]]
+                'errors' => ['prices' => ['Fiyat güncelleme işlemi başarısız oldu.']]
             ], 500);
         }
     }
