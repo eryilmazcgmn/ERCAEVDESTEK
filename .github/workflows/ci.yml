@@ -20,14 +20,16 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: '8.1'
+          php-version: '8.2'
+          extensions: mbstring, pdo_mysql, xml, zip, intl, bcmath, curl
       - name: Install composer dependencies
         run: |
           composer install --working-dir=backend --no-progress --prefer-dist
       - name: Prepare env
         run: |
           cp backend/.env.example backend/.env
-          php -r "file_put_contents('backend/.env', str_replace('DB_DATABASE=', 'DB_DATABASE=test', file_get_contents('backend/.env')));"
+          sed -i "s/DB_DATABASE=.*/DB_DATABASE=test/" backend/.env
+          sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=root/" backend/.env
       - name: Run phpunit
         run: |
           cd backend
