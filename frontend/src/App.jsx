@@ -5,6 +5,7 @@ import { Toaster } from 'sonner';
 // Custom Hooks
 import { useAdmin } from './hooks/useAdmin';
 import { useSettings } from './context/SettingsContext';
+import { useTheme } from './hooks/useTheme';
 
 // Pages
 import CustomerWizardPage from './pages/CustomerWizardPage';
@@ -88,6 +89,8 @@ function AppRoutes() {
 }
 
 function App() {
+  useTheme();
+
   return (
     <ErrorBoundary>
       <BrowserRouter>
