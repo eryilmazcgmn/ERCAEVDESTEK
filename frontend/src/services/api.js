@@ -4,9 +4,11 @@ const isDev = (window.location.port === '5173' || window.location.port === '3000
 
 const BACKEND_URL = isDev
   ? 'http://localhost:8000'
-  : `${window.location.origin}/backend/public`;
+  : `${window.location.origin}/api`;
 
-const API_URL = `${BACKEND_URL}/api`;
+const API_URL = isDev
+  ? 'http://localhost:8000/api'
+  : `${window.location.origin}/api`;
 
 // Centralized Axios Instance with Interceptors
 const apiClient = axios.create({
