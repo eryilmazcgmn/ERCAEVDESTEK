@@ -34,6 +34,7 @@ echo ""
 echo "6/8 Frontend yayınlanıyor..."
 sudo rm -rf /var/www/html/*
 sudo cp -r dist/* /var/www/html/
+sudo ln -sfn /var/www/ERCAEVDESTEK/backend /var/www/html/backend
 
 echo ""
 echo "7/8 Nginx yeniden yükleniyor..."
