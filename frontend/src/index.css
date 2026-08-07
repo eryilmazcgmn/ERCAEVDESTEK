@@ -98,7 +98,16 @@ h1, h2, h3, h4, h5, h6 {
   font-family: 'Outfit', sans-serif;
 }
 
-/* Glassmorphism & Premium UI Classes */
+/* ─── Hero Gradient Section ─── */
+.hero-gradient {
+  background: linear-gradient(180deg, #faf5ff 0%, #f0e8ff 40%, #f8fafc 100%);
+}
+
+.dark .hero-gradient {
+  background: linear-gradient(180deg, #0d0618 0%, #0f0a1f 40%, #090a0f 100%);
+}
+
+/* ─── Glassmorphism & Premium UI Classes ─── */
 .glass-panel {
   background: rgba(255, 255, 255, 0.7);
   backdrop-filter: blur(20px);
@@ -132,6 +141,7 @@ h1, h2, h3, h4, h5, h6 {
   transform: translateY(-2px);
 }
 
+/* ─── Gradient Text ─── */
 .gradient-text {
   background: linear-gradient(135deg, #a78bfa 0%, #3b82f6 100%);
   -webkit-background-clip: text;
@@ -166,7 +176,46 @@ h1, h2, h3, h4, h5, h6 {
   background: transparent;
 }
 
-/* Custom Scrollbar */
+/* ─── Service Card Hover Effects ─── */
+.service-card {
+  transform: translateZ(0);
+  will-change: transform, box-shadow;
+}
+
+.service-card:active {
+  transform: scale(0.98);
+}
+
+/* ─── Animations ─── */
+@keyframes fade-in-up {
+  0% {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 0.5;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out both;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 4s ease-in-out infinite;
+}
+
+/* ─── Custom Scrollbar ─── */
 ::-webkit-scrollbar {
   width: 8px;
 }
@@ -196,7 +245,7 @@ h1, h2, h3, h4, h5, h6 {
   background: #2d314a;
 }
 
-/* Shimmer Loading Effect */
+/* ─── Shimmer Loading Effect ─── */
 @keyframes shimmer {
   0% {
     background-position: -200% 0;
@@ -217,4 +266,3 @@ h1, h2, h3, h4, h5, h6 {
   background-size: 200% 100%;
   animation: shimmer 1.5s infinite;
 }
-

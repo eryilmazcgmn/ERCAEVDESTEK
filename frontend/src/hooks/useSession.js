@@ -165,7 +165,7 @@ export function useSession() {
           const qData = quoteRes.data || quoteRes.quotation;
           setCompiledQuotation(qData);
           toast.success('Fiyat teklifiniz hazırlandı! Lütfen inceleyip onaylayınız.');
-          setActiveStep(5);
+          setActiveStep(4);
         } else {
           toast.error('Fiyat teklifi oluşturulurken bir hata oluştu: ' + (quoteRes.message || ''));
         }

@@ -1,7 +1,7 @@
-import React from 'react';
-import { FileText, AlertTriangle, ChevronRight, CheckCircle2 } from 'lucide-react';
+import React, { useMemo } from 'react';
+import { FileText, AlertTriangle, ChevronRight, ChevronLeft, Tag } from 'lucide-react';
 import { toast } from 'sonner';
-import { servicesConfig } from '../../config/servicesConfig';
+import { servicesConfig, calculateQuotation } from '../../config/servicesConfig';
 
 export default function StepQuestions({
   selectedService,
@@ -12,8 +12,12 @@ export default function StepQuestions({
   const allQuestions = servicesConfig[selectedService] || [];
   const dynamicQuestions = allQuestions.filter(q => !q.condition || q.condition(formAnswers));
 
+  // Live price estimate
+  const priceEstimate = useMemo(() => {
+    return calculateQuotation(selectedService, formAnswers);
+  }, [selectedService, formAnswers]);
+
   const handleNextStep = () => {
-    // Validate if at least the primary questions are answered
     if (dynamicQuestions.length > 0) {
       const firstQuestion = dynamicQuestions[0];
       if (!formAnswers[firstQuestion.id]) {
@@ -32,24 +36,29 @@ export default function StepQuestions({
             <FileText className="w-5 h-5 text-blue-400" />
             <h2 className="text-lg font-bold text-slate-900 dark:text-white">Hizmet Detayları</h2>
           </div>
-          <span className="text-xs text-blue-400 font-medium flex items-center gap-1">
-            <CheckCircle2 className="w-4 h-4 text-green-500" />
-            Hızlı Teklif Sistemi
-          </span>
+          {/* Live Price Badge */}
+          {priceEstimate.totalPrice > 0 && (
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-200 dark:border-green-500/30 animate-fade-in-up">
+              <Tag className="w-3.5 h-3.5 text-green-500" />
+              <span className="text-xs font-bold text-green-700 dark:text-green-400">
+                ~{priceEstimate.totalPrice.toLocaleString('tr-TR')} TL
+              </span>
+            </div>
+          )}
         </div>
 
         {/* Dynamic Question Render */}
-        <div className="space-y-6 max-w-xl font-sans">
+        <div className="space-y-5 max-w-xl">
           {dynamicQuestions.length > 0 ? (
             dynamicQuestions.map(q => (
-              <div key={q.id} className="space-y-3 bg-slate-100 dark:bg-gray-900/30 p-5 rounded-2xl border border-slate-200 dark:border-gray-800">
+              <div key={q.id} className="space-y-3 bg-slate-50/80 dark:bg-gray-900/30 p-4 md:p-5 rounded-2xl border border-slate-200/80 dark:border-gray-800">
                 <label className="block text-sm font-semibold text-slate-800 dark:text-gray-200">{q.label}</label>
                 
                 {q.type === 'select' && (
                   <select 
                     value={formAnswers[q.id] || ''} 
                     onChange={(e) => handleInputChange(q.id, e.target.value)}
-                    className="w-full bg-white dark:bg-gray-950 border border-slate-300 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-800 dark:text-gray-200"
+                    className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 text-slate-800 dark:text-gray-200 transition"
                   >
                     <option value="" disabled>Lütfen seçiniz</option>
                     {q.options.map((opt, i) => (
@@ -64,7 +73,7 @@ export default function StepQuestions({
                     value={formAnswers[q.id] || ''}
                     onChange={(e) => handleInputChange(q.id, e.target.value)}
                     placeholder={q.placeholder || 'Sayısal değer girin'} 
-                    className="w-full bg-white dark:bg-gray-950 border border-slate-300 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-800 dark:text-gray-200"
+                    className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 text-slate-800 dark:text-gray-200 transition"
                   />
                 )}
 
@@ -74,21 +83,21 @@ export default function StepQuestions({
                     value={formAnswers[q.id] || ''}
                     onChange={(e) => handleInputChange(q.id, e.target.value)}
                     placeholder={q.placeholder || 'Metin girin'} 
-                    className="w-full bg-white dark:bg-gray-950 border border-slate-300 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-blue-500 text-slate-800 dark:text-gray-200"
+                    className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-700 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-primary-500 focus:ring-2 focus:ring-primary-500/10 text-slate-800 dark:text-gray-200 transition"
                   />
                 )}
                 
                 {q.type === 'radio' && (
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {q.options.map((opt, i) => {
                       const isSelected = formAnswers[q.id] === opt;
                       return (
                         <label 
                           key={i} 
-                          className={`flex items-center gap-3 p-4 rounded-xl border cursor-pointer transition-all ${
+                          className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                             isSelected 
-                              ? 'border-primary-500 bg-primary-900/20 text-slate-900 dark:text-white shadow-[0_0_15px_rgba(168,85,247,0.15)]'
-                              : 'border-slate-200 dark:border-gray-800 bg-slate-50 dark:bg-gray-900/50 text-slate-500 dark:text-gray-400 hover:border-slate-400 dark:hover:border-slate-400 dark:border-gray-600 hover:text-slate-800 dark:hover:text-gray-200'
+                              ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-slate-900 dark:text-white shadow-sm shadow-primary-500/10'
+                              : 'border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 text-slate-600 dark:text-gray-400 hover:border-slate-300 dark:hover:border-gray-600 hover:text-slate-800 dark:hover:text-gray-200'
                           }`}
                         >
                           <input 
@@ -99,10 +108,10 @@ export default function StepQuestions({
                             onChange={() => handleInputChange(q.id, opt)}
                             className="hidden" 
                           />
-                          <div className={`w-4 h-4 rounded-full border flex-shrink-0 flex items-center justify-center ${
-                            isSelected ? 'border-blue-500' : 'border-slate-400 dark:border-gray-600'
+                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition ${
+                            isSelected ? 'border-primary-500' : 'border-slate-300 dark:border-gray-600'
                           }`}>
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-blue-500"></div>}
+                            {isSelected && <div className="w-2 h-2 rounded-full bg-primary-500"></div>}
                           </div>
                           <span className="text-sm font-medium">{opt}</span>
                         </label>
@@ -123,20 +132,22 @@ export default function StepQuestions({
         </div>
       </div>
 
+      {/* Navigation */}
       <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 pt-6 border-t border-slate-200 dark:border-gray-800 mt-6 md:relative fixed bottom-0 left-0 right-0 p-4 md:p-0 bg-white dark:bg-gray-950 md:bg-transparent border-t md:border-t-0 border-slate-200 dark:border-gray-800 z-30">
         <button 
           type="button" 
           onClick={() => setActiveStep(1)} 
-          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-sm font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-gray-800 transition flex items-center justify-center"
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-sm font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-800 transition flex items-center justify-center gap-1"
         >
+          <ChevronLeft className="w-4 h-4" />
           Geri
         </button>
         <button 
           type="button" 
           onClick={handleNextStep} 
-          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-sm font-semibold text-white transition flex items-center justify-center gap-2"
+          className="w-full sm:w-auto px-6 py-3 rounded-xl bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-500 hover:to-blue-500 text-sm font-bold text-white transition flex items-center justify-center gap-2 shadow-lg shadow-primary-900/15"
         >
-          Devam Et
+          İletişim Bilgilerine Geç
           <ChevronRight className="w-4 h-4" />
         </button>
       </div>

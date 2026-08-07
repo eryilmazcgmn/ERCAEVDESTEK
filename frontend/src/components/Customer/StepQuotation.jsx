@@ -70,11 +70,11 @@ export default function StepQuotation({
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
             <ShieldCheck className="w-5 h-5 text-green-400" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">5. Fiyat Teklifi ve Onay</h2>
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Fiyat Teklifi ve Onay</h2>
           </div>
           <span className="text-xs text-green-400 font-medium flex items-center gap-1">
             <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
-            {isApproved ? 'Teklif Onaylandı' : 'Teklif Hazır (Onay Bekliyor)'}
+            {isApproved ? 'Teklif Onaylandı' : 'Teklif Hazır'}
           </span>
         </div>
 
@@ -84,9 +84,9 @@ export default function StepQuotation({
             <div className="flex items-start gap-3">
               <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
               <div>
-                <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">Teklifi İnceleyiniz</h4>
+                <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">Teklifiniz Hazır!</h4>
                 <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                  Aşağıdaki teklif detaylarını inceledikten sonra <strong>"Teklifi Onayla & Sipariş Oluştur"</strong> butonuna tıklayarak kaporayı ödeyebilirsiniz.
+                  Detayları inceleyip <strong>"Teklifi Onayla"</strong> butonuna tıklayarak kaporayı ödeyebilirsiniz.
                 </p>
               </div>
             </div>
@@ -96,10 +96,10 @@ export default function StepQuotation({
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sol Kolon: Fiyatlandırma ve Hizmet Özeti */}
           <div className="lg:col-span-5 space-y-4 font-sans">
-            <div className="p-5 rounded-2xl bg-slate-100 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-4">
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-4">
               <div className="flex items-center gap-2 border-b border-slate-200 dark:border-gray-800 pb-3">
                 <CheckCircle2 className="w-5 h-5 text-primary-400" />
-                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Teklif & Hizmet Detayı</h3>
+                <h3 className="font-bold text-sm text-slate-900 dark:text-white">Hizmet Detayı</h3>
               </div>
               <div className="space-y-2 text-xs">
                 <div className="flex justify-between">
@@ -107,24 +107,24 @@ export default function StepQuotation({
                   <span className="text-slate-900 dark:text-white font-mono font-bold">{workOrderCode}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-gray-400">Belirlenen Hizmet:</span>
+                  <span className="text-slate-500 dark:text-gray-400">Hizmet:</span>
                   <span className="font-bold text-slate-900 dark:text-white uppercase">
-                    {selectedService === 'tv-mount' ? 'Duvara TV Montajı' : 
+                    {selectedService === 'tv-mount' ? 'TV Montajı' : 
                      selectedService === 'paint' ? 'Boyama & Dekorasyon' :
-                     selectedService === 'plumbing' ? 'Sıhhi Tesisat & Onarım' : 'Elektrik Tesisatı'}
+                     selectedService === 'plumbing' ? 'Sıhhi Tesisat' : 'Elektrik İşleri'}
                   </span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-slate-500 dark:text-gray-400">Teklif Durumu:</span>
+                  <span className="text-slate-500 dark:text-gray-400">Durum:</span>
                   <span className={`font-bold uppercase ${isApproved ? 'text-green-400' : 'text-amber-400'}`}>
-                    {isApproved ? 'Onaylandı (Kapora Bekleniyor)' : 'Müşteri Onayı Bekliyor'}
+                    {isApproved ? 'Onaylandı' : 'Onay Bekliyor'}
                   </span>
                 </div>
               </div>
             </div>
 
             {/* Kalem Kalem Fiyat Dökümü */}
-            <div className="p-5 rounded-2xl bg-slate-100 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-3">
+            <div className="p-5 rounded-2xl bg-slate-50 dark:bg-gray-900/60 border border-slate-200 dark:border-gray-800 space-y-3">
               <h3 className="font-bold text-xs text-primary-400 uppercase tracking-wider">Hizmet Kalemleri</h3>
               {compiledQuotation?.price_details?.items?.map((item, idx) => (
                 <div key={idx} className="flex justify-between text-xs text-slate-700 dark:text-gray-300 py-1 border-b border-slate-200 dark:border-gray-800/50">
@@ -137,9 +137,9 @@ export default function StepQuotation({
                   <span>Toplam Hizmet Bedeli:</span>
                   <span className="font-bold text-slate-900 dark:text-white">{totalAmount} TL</span>
                 </div>
-                <div className="flex justify-between text-primary-300 font-bold text-sm pt-1 border-t border-slate-200 dark:border-gray-800">
-                  <span>Gerekli Kapora (%20):</span>
-                  <span className="text-green-400">{depositAmount} TL</span>
+                <div className="flex justify-between text-primary-500 font-bold text-sm pt-1 border-t border-slate-200 dark:border-gray-800">
+                  <span>Kapora (%20):</span>
+                  <span className="text-green-500">{depositAmount} TL</span>
                 </div>
               </div>
             </div>
@@ -154,7 +154,7 @@ export default function StepQuotation({
               >
                 <div className="flex items-center gap-2">
                   <FileText className="w-4 h-4 text-primary-400" />
-                  <span className="font-semibold text-slate-700 dark:text-gray-300">Resmi Teklif Raporunu İndir (PDF)</span>
+                  <span className="font-semibold text-slate-700 dark:text-gray-300">Teklif Raporunu İndir (PDF)</span>
                 </div>
                 <ChevronRight className="w-3.5 h-3.5 text-slate-400 dark:text-gray-500" />
               </a>
@@ -173,7 +173,7 @@ export default function StepQuotation({
                   <div>
                     <h3 className="font-bold text-base text-slate-900 dark:text-white">Teklifi Kabul Ediyor musunuz?</h3>
                     <p className="text-xs text-slate-500 dark:text-gray-400">
-                      Fiyat detaylarını onayladıktan sonra kapora ödeme bilgileriniz oluşturulacak ve ustamız randevu takvimine eklenecektir.
+                      Onayladıktan sonra kapora ödeme bilgileri oluşturulacaktır.
                     </p>
                   </div>
                 </div>
@@ -187,7 +187,7 @@ export default function StepQuotation({
                       className="mt-0.5 rounded border-gray-300 text-primary-600 focus:ring-primary-500"
                     />
                     <span>
-                      Yukarıda belirtilen {totalAmount} TL tutarındaki hizmet bedelini ve kapora koşullarını okudum, kabul ediyorum.
+                      {totalAmount} TL tutarındaki hizmet bedelini ve kapora koşullarını okudum, kabul ediyorum.
                     </span>
                   </label>
                 </div>
@@ -219,7 +219,7 @@ export default function StepQuotation({
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <CreditCard className="w-5 h-5 text-blue-400" />
-                      <h3 className="font-bold text-base text-slate-900 dark:text-white">Havale / EFT IBAN Bilgileri</h3>
+                      <h3 className="font-bold text-base text-slate-900 dark:text-white">Havale / EFT Bilgileri</h3>
                     </div>
                     <span className="px-2.5 py-1 rounded-lg bg-green-100 dark:bg-green-950/60 border border-green-300 dark:border-green-500/30 text-[11px] font-bold text-green-700 dark:text-green-400">
                       %20 Kapora: {depositAmount} TL
@@ -236,7 +236,7 @@ export default function StepQuotation({
                     </div>
 
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider block">TR IBAN Numarası</span>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider block">TR IBAN</span>
                       <div className="flex items-center gap-2">
                         <div className="flex-1 bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl p-3 font-mono text-xs text-slate-900 dark:text-white tracking-widest">
                           {bankInfo.iban}
@@ -244,20 +244,20 @@ export default function StepQuotation({
                         <button 
                           type="button"
                           onClick={copyIban}
-                          className="p-3 rounded-xl bg-primary-900/40 border border-primary-500/30 hover:bg-primary-800 transition text-primary-300 shrink-0"
+                          className="p-3 rounded-xl bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-500/30 hover:bg-primary-200 dark:hover:bg-primary-800 transition text-primary-600 dark:text-primary-300 shrink-0"
                           title="Kopyala"
                         >
-                          {copied ? <CheckCircle2 className="w-4 h-4 text-green-400" /> : <Copy className="w-4 h-4" />}
+                          {copied ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
                         </button>
                       </div>
                     </div>
                   </div>
 
                   <div className="p-3.5 rounded-xl bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-500/30 text-blue-700 dark:text-blue-200 text-xs leading-relaxed">
-                    📌 <strong>Önemli:</strong> EFT/Havale yaparken açıklama alanına <strong>{workOrderCode}</strong> takip kodunuzu yazınız. Ödemeniz onaylandığında usta adrese yönlendirilecektir.
+                    📌 <strong>Önemli:</strong> EFT/Havale açıklamasına <strong>{workOrderCode}</strong> kodunu yazınız.
                   </div>
 
-                  {/* Action Buttons: WhatsApp & Declare Payment */}
+                  {/* Action Buttons */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                     <button
                       type="button"
@@ -294,7 +294,7 @@ export default function StepQuotation({
 
                   {depositDeclared && (
                     <div className="p-3 rounded-xl bg-green-50 dark:bg-green-950/40 border border-green-300 dark:border-green-500/40 text-center text-xs text-green-700 dark:text-green-300 font-medium animate-pulse">
-                      ✅ Ödeme bildiriminiz alındı. Ekibimiz Havale/EFT tutarını kontrol ettikten sonra usta atamasını tamamlayacaktır.
+                      ✅ Ödeme bildiriminiz alındı. Usta ataması en kısa sürede yapılacaktır.
                     </div>
                   )}
                 </div>
@@ -304,11 +304,12 @@ export default function StepQuotation({
         </div>
       </div>
 
+      {/* Navigation */}
       <div className="flex flex-col-reverse sm:flex-row justify-between items-center gap-3 pt-6 border-t border-slate-200 dark:border-gray-800 mt-6 md:relative fixed bottom-0 left-0 right-0 p-4 md:p-0 bg-white dark:bg-gray-950 md:bg-transparent border-t md:border-t-0 border-slate-200 dark:border-gray-800 z-30">
         <button 
           type="button"
-          onClick={() => setActiveStep(4)} 
-          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-sm font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-100 dark:hover:bg-gray-800 transition flex items-center justify-center"
+          onClick={() => setActiveStep(3)} 
+          className="w-full sm:w-auto px-5 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-sm font-semibold text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-800 transition flex items-center justify-center"
         >
           İletişim Bilgilerini Düzenle
         </button>

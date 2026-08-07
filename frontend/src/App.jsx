@@ -8,6 +8,7 @@ import { useSettings } from './context/SettingsContext';
 
 // Pages
 import CustomerWizardPage from './pages/CustomerWizardPage';
+import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 import TechnicianPage from './pages/TechnicianPage';
 import TrackingPage from './pages/TrackingPage';
@@ -36,10 +37,16 @@ function AppRoutes() {
 
   return (
     <Routes>
-      {/* Customer Wizard — Home */}
+      {/* Customer Wizard — Home (no admin dependencies) */}
       <Route
         path="/"
-        element={<CustomerWizardPage adminHook={admin} />}
+        element={<CustomerWizardPage />}
+      />
+
+      {/* Admin / Technician Login Page */}
+      <Route
+        path="/login"
+        element={<LoginPage adminHook={admin} />}
       />
 
       {/* Tracking Pages */}
