@@ -1,0 +1,8 @@
+# Node modülleri (Sunucuda npm install ile kurulacak)
+node_modules/
+
+# Ortam değişkenleri ve gizli anahtarlar
+.env
+
+# Log dosyaları
+*.log
