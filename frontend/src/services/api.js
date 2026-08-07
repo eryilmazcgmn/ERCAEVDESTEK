@@ -4,7 +4,7 @@ const isDev = (window.location.port === '5173' || window.location.port === '3000
 
 const BACKEND_URL = isDev
   ? 'http://localhost:8000'
-  : `${window.location.origin}/api`;
+  : window.location.origin;
 
 const API_URL = isDev
   ? 'http://localhost:8000/api'
