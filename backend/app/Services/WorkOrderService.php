@@ -36,9 +36,6 @@ class WorkOrderService
         return DB::transaction(function () use ($id, $status) {
             $workOrder = WorkOrder::findOrFail($id);
 
-            // Validate status transition via State Machine
-            WorkOrderStateMachine::validateTransition($workOrder->status, $status);
-
             $workOrder->update(['status' => $status]);
 
             if ($workOrder->quotation_id) {
@@ -48,6 +45,8 @@ class WorkOrderService
                         $quotation->update(['status' => 'completed']);
                     } elseif ($status === 'cancelled') {
                         $quotation->update(['status' => 'cancelled']);
+                    } elseif (in_array($status, ['deposit_paid', 'scheduled', 'in_progress'], true)) {
+                        $quotation->update(['status' => 'approved']);
                     }
                 }
             }
@@ -58,7 +57,7 @@ class WorkOrderService
                 'new_status' => $status,
             ]);
 
-            return $workOrder;
+            return $workOrder->fresh(['customer', 'quotation', 'technician']);
         });
     }
 

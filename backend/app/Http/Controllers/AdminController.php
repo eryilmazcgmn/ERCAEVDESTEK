@@ -10,12 +10,16 @@ use App\Http\Requests\CreateTechnicianRequest;
 use App\Http\Requests\UpdateWorkOrderStatusRequest;
 use App\Services\CustomerService;
 use App\Services\WorkOrderService;
+use App\Services\SettingService;
 use App\Models\Customer;
 use App\Models\WorkOrder;
 use App\Models\Quotation;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Support\Facades\File;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\Response as SymfonyResponse;
 use Illuminate\Support\Facades\Log;
 use App\Models\Service;
 use App\Services\Auth\JwtService;
@@ -166,10 +170,109 @@ class AdminController extends Controller
             Log::error('Admin updateWorkOrderStatus error', ['exception' => $e, 'work_order_id' => $id]);
             return response()->json([
                 'status' => false,
-                'message' => 'İş emri durumu güncellenemedi.',
+                'message' => 'İş emri durumu güncellenemedi: ' . $e->getMessage(),
                 'data' => null,
-                'errors' => ['server' => ['Güncelleme başarısız oldu.']]
+                'errors' => ['server' => [$e->getMessage()]]
             ], 400);
+        }
+    }
+
+    /**
+     * Download or stream Work Order PDF. Auto-generates if missing.
+     */
+    public function downloadWorkOrderPdf(int $id)
+    {
+        try {
+            $workOrder = WorkOrder::with(['customer', 'quotation'])->findOrFail($id);
+            $fullPath = null;
+
+            if (!empty($workOrder->pdf_path)) {
+                $relative = str_replace('storage/', '', $workOrder->pdf_path);
+                $fullPath = storage_path('app/public/' . $relative);
+            }
+
+            if (!$fullPath || !file_exists($fullPath)) {
+                if ($workOrder->quotation_id) {
+                    $res = app(QuotationService::class)->approveQuotation((int)$workOrder->quotation_id);
+                    $workOrder = $res['workOrder'] ?? $workOrder;
+                } else {
+                    $pdfDir = storage_path('app/public/pdf');
+                    if (!File::exists($pdfDir)) {
+                        File::makeDirectory($pdfDir, 0755, true);
+                    }
+                    $pdfFileName = 'IS_EMRI_' . $workOrder->id . '_' . time() . '.pdf';
+                    $pdfRelativePath = 'storage/pdf/' . $pdfFileName;
+                    $pdfFullPath = storage_path('app/public/pdf/' . $pdfFileName);
+                    $settings = app(SettingService::class)->getAllSettings();
+
+                    $pdf = Pdf::loadView('pdf.work_order', [
+                        'workOrder' => $workOrder,
+                        'work_order' => $workOrder,
+                        'quotation' => $workOrder->quotation,
+                        'customer' => $workOrder->customer,
+                        'settings' => $settings,
+                    ]);
+                    $pdf->save($pdfFullPath);
+                    $workOrder->update(['pdf_path' => $pdfRelativePath]);
+                    $fullPath = $pdfFullPath;
+                }
+            }
+
+            if (!empty($workOrder->pdf_path)) {
+                $relative = str_replace('storage/', '', $workOrder->pdf_path);
+                $fullPath = storage_path('app/public/' . $relative);
+            }
+
+            if (!file_exists($fullPath)) {
+                return response()->json(['status' => false, 'message' => 'PDF dosyası henüz oluşturulmadı.'], 404);
+            }
+
+            return response()->file($fullPath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"'
+            ]);
+        } catch (Exception $e) {
+            Log::error('Download WorkOrder PDF error', ['exception' => $e, 'id' => $id]);
+            return response()->json(['status' => false, 'message' => 'PDF indirilirken hata oluştu: ' . $e->getMessage()], 500);
+        }
+    }
+
+    /**
+     * Download or stream Quotation PDF. Auto-generates if missing.
+     */
+    public function downloadQuotationPdf(int $id)
+    {
+        try {
+            $quotation = Quotation::with(['customer', 'conversation'])->findOrFail($id);
+            $fullPath = null;
+
+            if (!empty($quotation->pdf_path)) {
+                $relative = str_replace('storage/', '', $quotation->pdf_path);
+                $fullPath = storage_path('app/public/' . $relative);
+            }
+
+            if (!$fullPath || !file_exists($fullPath)) {
+                $service = app(QuotationService::class);
+                $newQ = $service->createQuotation($quotation->conversation->session_id ?? '', $quotation->service_type, $quotation->details ?? []);
+                $quotation = $newQ;
+            }
+
+            if (!empty($quotation->pdf_path)) {
+                $relative = str_replace('storage/', '', $quotation->pdf_path);
+                $fullPath = storage_path('app/public/' . $relative);
+            }
+
+            if (!file_exists($fullPath)) {
+                return response()->json(['status' => false, 'message' => 'Teklif PDF dosyası bulunamadı.'], 404);
+            }
+
+            return response()->file($fullPath, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'inline; filename="' . basename($fullPath) . '"'
+            ]);
+        } catch (Exception $e) {
+            Log::error('Download Quotation PDF error', ['exception' => $e, 'id' => $id]);
+            return response()->json(['status' => false, 'message' => 'Teklif PDF indirilirken hata oluştu: ' . $e->getMessage()], 500);
         }
     }
 

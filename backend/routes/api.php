@@ -82,7 +82,9 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::get('/dashboard-stats', [AdminController::class, 'dashboardStats']);
     Route::get('/customers', [AdminController::class, 'customers']);
     Route::get('/quotations', [AdminController::class, 'quotations']);
+    Route::get('/quotations/{id}/pdf', [AdminController::class, 'downloadQuotationPdf']);
     Route::get('/work-orders', [AdminController::class, 'workOrders']);
+    Route::get('/work-orders/{id}/pdf', [AdminController::class, 'downloadWorkOrderPdf']);
     Route::post('/work-orders/{id}/status', [AdminController::class, 'updateWorkOrderStatus']);
     Route::get('/technicians', [AdminController::class, 'technicians']);
     Route::post('/technicians', [AdminController::class, 'createTechnician']);

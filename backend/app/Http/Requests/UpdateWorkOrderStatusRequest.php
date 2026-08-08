@@ -18,9 +18,9 @@ class UpdateWorkOrderStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => 'required|string|in:pending,deposit_pending,deposit_declared,deposit_paid,scheduled,in_progress,completed,cancelled',
-            'completion_notes' => 'nullable|string|max:1000',
-            'completion_photo' => 'nullable|string|max:255'
+            'status' => 'required|string|in:pending,deposit_pending,deposit_declared,deposit_paid,scheduled,in_progress,completed,cancelled,active,approved',
+            'completion_notes' => 'nullable|string|max:2000',
+            'completion_photo' => 'nullable|string|max:2000'
         ];
     }
 

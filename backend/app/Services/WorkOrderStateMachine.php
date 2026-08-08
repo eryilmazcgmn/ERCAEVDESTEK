@@ -17,14 +17,14 @@ class WorkOrderStateMachine
      * Key: current status, Value: array of allowed next statuses.
      */
     private const TRANSITIONS = [
-        'pending' => ['deposit_pending', 'cancelled'],
-        'deposit_pending' => ['deposit_declared', 'deposit_paid', 'cancelled'],
-        'deposit_declared' => ['deposit_paid', 'deposit_pending', 'cancelled'],
-        'deposit_paid' => ['scheduled', 'cancelled'],
-        'scheduled' => ['in_progress', 'cancelled'],
-        'in_progress' => ['completed', 'cancelled'],
-        'completed' => [], // Final state
-        'cancelled' => [], // Final state
+        'pending' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'deposit_pending' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'deposit_declared' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'deposit_paid' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'scheduled' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'in_progress' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'completed' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
+        'cancelled' => ['pending', 'deposit_pending', 'deposit_declared', 'deposit_paid', 'scheduled', 'in_progress', 'completed', 'cancelled'],
     ];
 
     /**
