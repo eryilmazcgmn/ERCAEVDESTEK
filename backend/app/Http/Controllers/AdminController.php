@@ -545,6 +545,106 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Update question title and type for a service.
+     */
+    public function updateQuestion(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'service_type' => 'required|string|max:100',
+                'question_id' => 'required|string|max:100',
+                'question_title' => 'required|string|max:255',
+                'question_type' => 'required|string|in:radio,select,number,text',
+            ]);
+
+            $this->workOrderService->updateQuestionTitleAndType(
+                $validated['service_type'],
+                $validated['question_id'],
+                $validated['question_title'],
+                $validated['question_type']
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Soru başlığı ve türü güncellendi.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin updateQuestion error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Güncelleme başarısız.',
+                'data' => null,
+                'errors' => ['question' => [$e->getMessage()]]
+            ], 500);
+        }
+    }
+
+    /**
+     * Delete an entire question and its options.
+     */
+    public function deleteQuestion(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'service_type' => 'required|string|max:100',
+                'question_id' => 'required|string|max:100',
+            ]);
+
+            $this->workOrderService->deleteWholeQuestion(
+                $validated['service_type'],
+                $validated['question_id']
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Soru ve tüm seçenekleri silindi.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin deleteQuestion error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Soru silinirken hata oluştu.',
+                'data' => null,
+                'errors' => ['question' => [$e->getMessage()]]
+            ], 500);
+        }
+    }
+
+    /**
+     * Reorder options inside a question.
+     */
+    public function reorderOptions(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'ordered_option_ids' => 'required|array',
+                'ordered_option_ids.*' => 'integer',
+            ]);
+
+            $this->workOrderService->reorderOptions($validated['ordered_option_ids']);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Seçenek sıralaması güncellendi.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin reorderOptions error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Sıralama güncellenemedi.',
+                'data' => null,
+                'errors' => ['reorder' => [$e->getMessage()]]
+            ], 500);
+        }
+    }
+
     // ────────────────────────────────────────────────
     // Service CRUD (Admin Panel)
     // ────────────────────────────────────────────────

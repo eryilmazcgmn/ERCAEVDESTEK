@@ -283,6 +283,50 @@ class WorkOrderService
         });
     }
 
+    public function updateQuestionTitleAndType(string $serviceType, string $questionId, string $newTitle, string $questionType): bool
+    {
+        return DB::transaction(function () use ($serviceType, $questionId, $newTitle, $questionType) {
+            $items = ServicePrice::where('service_type', $serviceType)
+                ->where('question_id', $questionId)
+                ->get();
+
+            foreach ($items as $item) {
+                $parts = explode(':', $item->label, 2);
+                $subText = isset($parts[1]) ? trim($parts[1]) : $item->option_value;
+                $newLabel = $newTitle . ': ' . $subText;
+
+                $item->update([
+                    'label' => $newLabel,
+                    'question_type' => $questionType,
+                ]);
+            }
+
+            Cache::forget('service_prices');
+            return true;
+        });
+    }
+
+    public function deleteWholeQuestion(string $serviceType, string $questionId): bool
+    {
+        ServicePrice::where('service_type', $serviceType)
+            ->where('question_id', $questionId)
+            ->delete();
+
+        Cache::forget('service_prices');
+        return true;
+    }
+
+    public function reorderOptions(array $orderedOptionIds): bool
+    {
+        return DB::transaction(function () use ($orderedOptionIds) {
+            foreach ($orderedOptionIds as $index => $id) {
+                ServicePrice::where('id', $id)->update(['sort_order' => $index + 1]);
+            }
+            Cache::forget('service_prices');
+            return true;
+        });
+    }
+
     public function createServicePrice(array $data): ServicePrice
     {
         $qType = $data['question_type'] ?? 'radio';

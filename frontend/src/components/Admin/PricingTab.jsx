@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Info, Plus, Trash2, X, HelpCircle, Layers, ListFilter, ChevronUp, ChevronDown } from 'lucide-react';
+import { Save, RefreshCw, Info, Plus, Trash2, Edit2, X, HelpCircle, Layers, ListFilter, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function PricingTab({
   crmPrices,
@@ -8,6 +8,9 @@ export default function PricingTab({
   handleCreateServicePrice,
   handleDeleteServicePrice,
   handleReorderServiceQuestions,
+  handleReorderQuestionOptions,
+  handleUpdateServiceQuestion,
+  handleDeleteServiceQuestion,
   loadingCrmData,
   fetchCrmPrices
 }) {
@@ -81,16 +84,55 @@ export default function PricingTab({
     };
   });
 
+  const [editQuestionModal, setEditQuestionModal] = useState(null);
+
   const handlePriceChange = (id, newPrice) => {
     setLocalPrices(prev =>
       prev.map(p => (p.id === id ? { ...p, price: parseInt(newPrice) || 0 } : p))
     );
   };
 
+  const handleLabelChange = (id, newSubText) => {
+    setLocalPrices(prev =>
+      prev.map(p => {
+        if (p.id === id) {
+          const parts = (p.label || '').split(':');
+          const titlePrefix = parts[0] ? parts[0].trim() : '';
+          const newLabel = titlePrefix ? `${titlePrefix}: ${newSubText}` : newSubText;
+          return { ...p, label: newLabel, option_value: newSubText };
+        }
+        return p;
+      })
+    );
+  };
+
+  const handleOpenEditQuestion = (qId, currentTitle, currentType) => {
+    setEditQuestionModal({
+      questionId: qId,
+      title: currentTitle,
+      type: currentType
+    });
+  };
+
+  const handleConfirmQuestionEdit = (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!editQuestionModal) return;
+    if (handleUpdateServiceQuestion) {
+      handleUpdateServiceQuestion(
+        activeService,
+        editQuestionModal.questionId,
+        editQuestionModal.title,
+        editQuestionModal.type
+      );
+    }
+    setEditQuestionModal(null);
+  };
+
   const onSave = () => {
     const updatedList = localPrices.map(p => ({
       id: p.id,
-      price: p.price
+      price: p.price,
+      label: p.label
     }));
     handleBulkUpdatePrices(updatedList);
   };
@@ -389,6 +431,74 @@ export default function PricingTab({
         </div>
       )}
 
+      {/* Edit Question Modal */}
+      {editQuestionModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-800 pb-3">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-blue-500" />
+                Soruyu Düzenle
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setEditQuestionModal(null)}
+                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-gray-200"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmQuestionEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase mb-1">
+                  Soru Metni / Başlığı
+                </label>
+                <input 
+                  type="text" 
+                  value={editQuestionModal.title}
+                  onChange={(e) => setEditQuestionModal(prev => ({ ...prev, title: e.target.value }))}
+                  required
+                  placeholder="Örn: Kaç adet avize asılacak?"
+                  className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase mb-1">
+                  Müşteri Cevap Tipi (Kontrol Türü)
+                </label>
+                <select 
+                  value={editQuestionModal.type}
+                  onChange={(e) => setEditQuestionModal(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="radio">🔘 Radyo Butonlar (Tekli Seçim Kartları)</option>
+                  <option value="select">▼ Açılır Menü (Dropdown)</option>
+                </select>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setEditQuestionModal(null)}
+                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-gray-900 text-slate-700 dark:text-gray-300 text-xs font-semibold hover:bg-slate-200 transition"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  Soruyu Güncelle
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
       {/* Pricing Inputs Grouped by Question */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Object.keys(groupedPrices).length > 0 ? (
@@ -415,14 +525,14 @@ export default function PricingTab({
               <div key={questionId} className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-gray-800/80 space-y-4">
                 <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-800 pb-3">
                   <div className="flex items-center gap-2">
-                    {/* Sıralama Butonları */}
+                    {/* Soru Sıralama Butonları */}
                     <div className="flex items-center gap-1 bg-slate-100 dark:bg-gray-900 rounded-lg p-1 border border-slate-200 dark:border-gray-800">
                       <button
                         type="button"
                         disabled={qIndex === 0}
                         onClick={() => handleMoveQuestion('up')}
                         className="p-1 text-slate-500 hover:text-blue-500 disabled:opacity-30 transition rounded hover:bg-white dark:hover:bg-gray-800 cursor-pointer"
-                        title="Yukarı Taşı (Sorunun Sırasını Öne Al)"
+                        title="Yukarı Taşı"
                       >
                         <ChevronUp className="w-3.5 h-3.5" />
                       </button>
@@ -434,7 +544,7 @@ export default function PricingTab({
                         disabled={qIndex === qArray.length - 1}
                         onClick={() => handleMoveQuestion('down')}
                         className="p-1 text-slate-500 hover:text-blue-500 disabled:opacity-30 transition rounded hover:bg-white dark:hover:bg-gray-800 cursor-pointer"
-                        title="Aşağı Taşı (Sorunun Sırasını Arkaya Al)"
+                        title="Aşağı Taşı"
                       >
                         <ChevronDown className="w-3.5 h-3.5" />
                       </button>
@@ -447,43 +557,115 @@ export default function PricingTab({
                       {qType === 'select' ? 'Açılır Liste' : 'Radyo'}
                     </span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={() => openAddModalForService(questionId)}
-                    className="flex items-center gap-1 text-[11px] font-bold text-blue-500 hover:text-blue-400 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 transition"
-                    title="Bu soruya yeni seçenek ekle"
-                  >
-                    <Plus className="w-3 h-3" />
-                    Seçenek Ekle
-                  </button>
+
+                  <div className="flex items-center gap-1">
+                    {/* Soruyu Düzenle */}
+                    <button
+                      type="button"
+                      onClick={() => handleOpenEditQuestion(questionId, questionTitle, qType)}
+                      className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition"
+                      title="Soruyu Düzenle (Başlık / Tip)"
+                    >
+                      <Edit2 className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Soruyu Sil */}
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteServiceQuestion && handleDeleteServiceQuestion(activeService, questionId)}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition"
+                      title="Tüm Soruyu Sil"
+                    >
+                      <Trash2 className="w-3.5 h-3.5" />
+                    </button>
+
+                    {/* Seçenek Ekle */}
+                    <button
+                      type="button"
+                      onClick={() => openAddModalForService(questionId)}
+                      className="flex items-center gap-1 text-[11px] font-bold text-blue-500 hover:text-blue-400 px-2 py-1 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-950/30 transition ml-1"
+                      title="Bu soruya yeni seçenek ekle"
+                    >
+                      <Plus className="w-3 h-3" />
+                      Seçenek Ekle
+                    </button>
+                  </div>
                 </div>
 
+                {/* Options List with Reordering & Inline Label Edit */}
                 <div className="space-y-3">
-                  {items.map(item => (
-                    <div key={item.id} className="flex justify-between items-center gap-3">
-                      <span className="text-xs text-slate-600 dark:text-gray-400 font-medium flex-1 min-w-0 truncate">
-                        {item.label.split(':')[1]?.trim() || item.option_value}
-                      </span>
-                      <div className="flex items-center gap-2 shrink-0">
+                  {items.map((item, oIndex) => {
+                    const optionSubText = item.label ? (item.label.split(':')[1]?.trim() || item.label) : item.option_value;
+
+                    const handleMoveOption = (direction) => {
+                      const targetIndex = direction === 'up' ? oIndex - 1 : oIndex + 1;
+                      if (targetIndex < 0 || targetIndex >= items.length) return;
+
+                      const newItems = [...items];
+                      const temp = newItems[oIndex];
+                      newItems[oIndex] = newItems[targetIndex];
+                      newItems[targetIndex] = temp;
+
+                      const orderedOptionIds = newItems.map(it => it.id);
+                      if (handleReorderQuestionOptions) {
+                        handleReorderQuestionOptions(orderedOptionIds);
+                      }
+                    };
+
+                    return (
+                      <div key={item.id} className="flex justify-between items-center gap-2">
+                        {/* Seçenek Sıralama Okları */}
+                        <div className="flex items-center gap-0.5 bg-slate-50 dark:bg-gray-900 rounded p-0.5 border border-slate-200 dark:border-gray-800 shrink-0">
+                          <button
+                            type="button"
+                            disabled={oIndex === 0}
+                            onClick={() => handleMoveOption('up')}
+                            className="p-1 text-slate-400 hover:text-blue-500 disabled:opacity-20 transition"
+                            title="Seçeneği Yukarı Taşı"
+                          >
+                            <ChevronUp className="w-3 h-3" />
+                          </button>
+                          <button
+                            type="button"
+                            disabled={oIndex === items.length - 1}
+                            onClick={() => handleMoveOption('down')}
+                            className="p-1 text-slate-400 hover:text-blue-500 disabled:opacity-20 transition"
+                            title="Seçeneği Aşağı Taşı"
+                          >
+                            <ChevronDown className="w-3 h-3" />
+                          </button>
+                        </div>
+
+                        {/* Düzenlenebilir Seçenek Adı */}
                         <input
-                          type="number"
-                          min="0"
-                          value={item.price}
-                          onChange={(e) => handlePriceChange(item.id, e.target.value)}
-                          className="w-24 bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-2 text-xs text-right text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                          type="text"
+                          value={optionSubText}
+                          onChange={(e) => handleLabelChange(item.id, e.target.value)}
+                          placeholder="Seçenek Adı"
+                          className="flex-1 bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-1.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500 transition"
                         />
-                        <span className="text-xs text-slate-400 dark:text-gray-500 font-semibold">TL</span>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteServicePrice(item.id)}
-                          className="p-2 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition"
-                          title="Seçeneği Sil"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
+
+                        <div className="flex items-center gap-1.5 shrink-0">
+                          <input
+                            type="number"
+                            min="0"
+                            value={item.price}
+                            onChange={(e) => handlePriceChange(item.id, e.target.value)}
+                            className="w-20 bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-2.5 py-1.5 text-xs text-right font-bold text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                          />
+                          <span className="text-[11px] text-slate-400 dark:text-gray-500 font-semibold">TL</span>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteServicePrice(item.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition ml-1"
+                            title="Seçeneği Sil"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             );

@@ -270,6 +270,36 @@ export const api = {
     return res;
   },
 
+  // Admin Endpoint: Reorder options inside a question
+  reorderQuestionOptions: async (ordered_option_ids, token) => {
+    const res = await apiClient.post(
+      '/admin/service-prices/reorder-options',
+      { ordered_option_ids },
+      getAuthHeader(token)
+    );
+    return res;
+  },
+
+  // Admin Endpoint: Update question title and type
+  updateServiceQuestion: async (service_type, question_id, question_title, question_type, token) => {
+    const res = await apiClient.post(
+      '/admin/service-prices/update-question',
+      { service_type, question_id, question_title, question_type },
+      getAuthHeader(token)
+    );
+    return res;
+  },
+
+  // Admin Endpoint: Delete whole question
+  deleteServiceQuestion: async (service_type, question_id, token) => {
+    const res = await apiClient.post(
+      '/admin/service-prices/delete-question',
+      { service_type, question_id },
+      getAuthHeader(token)
+    );
+    return res;
+  },
+
   // Admin Endpoint: Delete a service price item
   deleteServicePrice: async (id, token) => {
     const res = await apiClient.delete(

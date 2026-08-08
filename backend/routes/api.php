@@ -96,6 +96,9 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::post('/service-prices/bulk-update', [AdminController::class, 'updateServicePrices']);
     Route::post('/service-prices/create', [AdminController::class, 'createServicePrice']);
     Route::post('/service-prices/reorder', [AdminController::class, 'reorderServiceQuestions']);
+    Route::post('/service-prices/reorder-options', [AdminController::class, 'reorderOptions']);
+    Route::post('/service-prices/update-question', [AdminController::class, 'updateQuestion']);
+    Route::post('/service-prices/delete-question', [AdminController::class, 'deleteQuestion']);
     Route::delete('/service-prices/{id}', [AdminController::class, 'deleteServicePrice']);
 
     // Service management (CRUD)

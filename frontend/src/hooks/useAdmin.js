@@ -248,6 +248,55 @@ export function useAdmin() {
     }
   }, [adminToken, fetchCrmPrices]);
 
+  const handleReorderQuestionOptions = useCallback(async (orderedOptionIds) => {
+    setLoadingCrmData(true);
+    try {
+      const data = await api.reorderQuestionOptions(orderedOptionIds, adminToken);
+      if (data.status || data.success) {
+        toast.success('Seçenek sıralaması güncellendi.');
+        fetchCrmPrices();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Seçenek sıralaması güncellenirken hata oluştu.');
+    } finally {
+      setLoadingCrmData(false);
+    }
+  }, [adminToken, fetchCrmPrices]);
+
+  const handleUpdateServiceQuestion = useCallback(async (serviceType, questionId, questionTitle, questionType) => {
+    setLoadingCrmData(true);
+    try {
+      const data = await api.updateServiceQuestion(serviceType, questionId, questionTitle, questionType, adminToken);
+      if (data.status || data.success) {
+        toast.success('Soru düzenlendi.');
+        fetchCrmPrices();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Soru güncellenirken hata oluştu.');
+    } finally {
+      setLoadingCrmData(false);
+    }
+  }, [adminToken, fetchCrmPrices]);
+
+  const handleDeleteServiceQuestion = useCallback(async (serviceType, questionId) => {
+    if (!window.confirm('Bu soruyu ve bu soruya ait TÜM seçenekleri silmek istediğinizden emin misiniz?')) return;
+    setLoadingCrmData(true);
+    try {
+      const data = await api.deleteServiceQuestion(serviceType, questionId, adminToken);
+      if (data.status || data.success) {
+        toast.success('Soru ve tüm seçenekleri silindi.');
+        fetchCrmPrices();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Soru silinirken hata oluştu.');
+    } finally {
+      setLoadingCrmData(false);
+    }
+  }, [adminToken, fetchCrmPrices]);
+
   const handleCreateTechnician = useCallback(async (name, username, password) => {
     setLoadingCrmData(true);
     try {
@@ -394,6 +443,9 @@ export function useAdmin() {
     handleDeleteService,
     handleCreateServicePrice,
     handleDeleteServicePrice,
-    handleReorderServiceQuestions
+    handleReorderServiceQuestions,
+    handleReorderQuestionOptions,
+    handleUpdateServiceQuestion,
+    handleDeleteServiceQuestion
   };
 }
