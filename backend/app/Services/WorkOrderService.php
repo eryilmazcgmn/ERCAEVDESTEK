@@ -305,12 +305,18 @@ class WorkOrderService
         });
     }
 
-    public function deleteWholeQuestion(string $serviceType, string $questionId): bool
+    public function deleteWholeQuestion(string $serviceType, string $questionId, ?string $questionTitle = null, array $itemIds = []): bool
     {
-        return DB::transaction(function () use ($serviceType, $questionId) {
+        return DB::transaction(function () use ($serviceType, $questionId, $questionTitle, $itemIds) {
             $qId = trim($questionId);
             $sType = trim($serviceType);
 
+            // 1. Delete by direct option IDs
+            if (!empty($itemIds)) {
+                DB::table('service_prices')->whereIn('id', $itemIds)->delete();
+            }
+
+            // 2. Delete by question_id
             DB::table('service_prices')
                 ->where('question_id', $qId)
                 ->delete();
@@ -319,6 +325,13 @@ class WorkOrderService
                 DB::table('service_prices')
                     ->where('service_type', $sType)
                     ->where('question_id', $qId)
+                    ->delete();
+            }
+
+            // 3. Delete by label prefix matching question title
+            if (!empty($questionTitle)) {
+                DB::table('service_prices')
+                    ->where('label', 'LIKE', trim($questionTitle) . ':%')
                     ->delete();
             }
 

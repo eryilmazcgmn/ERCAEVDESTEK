@@ -294,10 +294,10 @@ export const api = {
   },
 
   // Admin Endpoint: Delete whole question
-  deleteServiceQuestion: async (service_type, question_id, token) => {
+  deleteServiceQuestion: async (service_type, question_id, question_title = null, item_ids = [], token = null) => {
     const res = await apiClient.post(
       '/admin/service-prices/delete-question',
-      { service_type, question_id },
+      { service_type, question_id, question_title, item_ids },
       getAuthHeader(token)
     );
     return res;

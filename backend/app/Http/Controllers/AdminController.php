@@ -698,13 +698,18 @@ class AdminController extends Controller
     {
         try {
             $validated = $request->validate([
-                'service_type' => 'required|string|max:100',
+                'service_type' => 'nullable|string|max:100',
                 'question_id' => 'required|string|max:100',
+                'question_title' => 'nullable|string|max:255',
+                'item_ids' => 'nullable|array',
+                'item_ids.*' => 'integer',
             ]);
 
             $this->workOrderService->deleteWholeQuestion(
-                $validated['service_type'],
-                $validated['question_id']
+                $validated['service_type'] ?? '',
+                $validated['question_id'],
+                $validated['question_title'] ?? null,
+                $validated['item_ids'] ?? []
             );
 
             return response()->json([

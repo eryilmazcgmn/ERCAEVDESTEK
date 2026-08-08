@@ -150,10 +150,14 @@ export default function PricingTab({
     setEditQuestionModal(null);
   };
 
-  const onDeleteQuestion = async (questionId) => {
-    setLocalPrices(prev => prev.filter(p => p.question_id !== questionId));
+  const onDeleteQuestion = async (questionId, questionTitle = null, itemIds = []) => {
+    if (!window.confirm('Bu soruyu ve tüm seçeneklerini silmek istediğinizden emin misiniz?')) return;
+    setLocalPrices(prev => prev.filter(p => p.question_id !== questionId && (!itemIds.length || !itemIds.includes(p.id))));
     if (handleDeleteServiceQuestion) {
-      await handleDeleteServiceQuestion(activeService, questionId);
+      const ok = await handleDeleteServiceQuestion(activeService, questionId, questionTitle, itemIds);
+      if (!ok && fetchCrmPrices) {
+        fetchCrmPrices();
+      }
     }
   };
 
@@ -663,7 +667,7 @@ export default function PricingTab({
                     {/* Soruyu Sil */}
                     <button
                       type="button"
-                      onClick={() => onDeleteQuestion(questionId)}
+                      onClick={() => onDeleteQuestion(questionId, questionTitle, items.map(i => i.id))}
                       className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition cursor-pointer"
                       title="Tüm Soruyu Sil"
                     >

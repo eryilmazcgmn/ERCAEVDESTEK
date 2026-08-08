@@ -290,15 +290,15 @@ export function useAdmin() {
     }
   }, [adminToken, fetchCrmPrices]);
 
-  const handleDeleteServiceQuestion = useCallback(async (serviceType, questionId) => {
-    if (!window.confirm('Bu soruyu ve bu soruya ait TÜM seçenekleri silmek istediğinizden emin misiniz?')) return;
+  const handleDeleteServiceQuestion = useCallback(async (serviceType, questionId, questionTitle = null, itemIds = []) => {
     const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.deleteServiceQuestion(serviceType, questionId, activeToken);
+      const data = await api.deleteServiceQuestion(serviceType, questionId, questionTitle, itemIds, activeToken);
       if (data.status || data.success) {
         toast.success('Soru ve tüm seçenekleri silindi.');
-        fetchCrmPrices(activeToken);
+        await fetchCrmPrices(activeToken);
+        return true;
       }
     } catch (err) {
       console.error(err);
@@ -306,6 +306,7 @@ export function useAdmin() {
     } finally {
       setLoadingCrmData(false);
     }
+    return false;
   }, [adminToken, fetchCrmPrices]);
 
   const handleCreateTechnician = useCallback(async (name, username, password) => {
