@@ -150,6 +150,20 @@ export default function PricingTab({
     setEditQuestionModal(null);
   };
 
+  const onDeleteQuestion = async (questionId) => {
+    setLocalPrices(prev => prev.filter(p => p.question_id !== questionId));
+    if (handleDeleteServiceQuestion) {
+      await handleDeleteServiceQuestion(activeService, questionId);
+    }
+  };
+
+  const onDeleteOption = async (optionId) => {
+    setLocalPrices(prev => prev.filter(p => p.id !== optionId));
+    if (handleDeleteServicePrice) {
+      await handleDeleteServicePrice(optionId);
+    }
+  };
+
   const onSave = () => {
     const updatedList = localPrices.map(p => ({
       id: p.id,
@@ -649,8 +663,8 @@ export default function PricingTab({
                     {/* Soruyu Sil */}
                     <button
                       type="button"
-                      onClick={() => handleDeleteServiceQuestion && handleDeleteServiceQuestion(activeService, questionId)}
-                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition"
+                      onClick={() => onDeleteQuestion(questionId)}
+                      className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition cursor-pointer"
                       title="Tüm Soruyu Sil"
                     >
                       <Trash2 className="w-3.5 h-3.5" />
@@ -733,8 +747,8 @@ export default function PricingTab({
                           <span className="text-[11px] text-slate-400 dark:text-gray-500 font-semibold">TL</span>
                           <button
                             type="button"
-                            onClick={() => handleDeleteServicePrice(item.id)}
-                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition ml-1"
+                            onClick={() => onDeleteOption(item.id)}
+                            className="p-1.5 text-slate-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-950/30 rounded-lg transition ml-1 cursor-pointer"
                             title="Seçeneği Sil"
                           >
                             <Trash2 className="w-3.5 h-3.5" />

@@ -102,8 +102,8 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::post('/service-prices/reorder', [AdminController::class, 'reorderServiceQuestions']);
     Route::post('/service-prices/reorder-options', [AdminController::class, 'reorderOptions']);
     Route::post('/service-prices/update-question', [AdminController::class, 'updateQuestion']);
-    Route::post('/service-prices/delete-question', [AdminController::class, 'deleteQuestion']);
-    Route::delete('/service-prices/{id}', [AdminController::class, 'deleteServicePrice']);
+    Route::match(['post', 'delete'], '/service-prices/delete-question', [AdminController::class, 'deleteQuestion']);
+    Route::match(['post', 'delete'], '/service-prices/{id}', [AdminController::class, 'deleteServicePrice']);
 
     // Service management (CRUD)
     Route::get('/services', [AdminController::class, 'getServices']);

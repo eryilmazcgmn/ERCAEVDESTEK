@@ -309,11 +309,14 @@ class WorkOrderService
 
     public function deleteWholeQuestion(string $serviceType, string $questionId): bool
     {
-        ServicePrice::where('service_type', $serviceType)
-            ->where('question_id', $questionId)
+        ServicePrice::where('question_id', $questionId)
+            ->orWhere(function ($query) use ($serviceType, $questionId) {
+                $query->where('service_type', $serviceType)->where('question_id', $questionId);
+            })
             ->delete();
 
         Cache::forget('service_prices');
+        try { Cache::flush(); } catch (Exception $e) {}
         return true;
     }
 
@@ -324,6 +327,7 @@ class WorkOrderService
                 ServicePrice::where('id', $id)->update(['sort_order' => $index + 1]);
             }
             Cache::forget('service_prices');
+            try { Cache::flush(); } catch (Exception $e) {}
             return true;
         });
     }
@@ -357,6 +361,7 @@ class WorkOrderService
         ]);
 
         Cache::forget('service_prices');
+        try { Cache::flush(); } catch (Exception $e) {}
         return $sp;
     }
 
@@ -364,6 +369,7 @@ class WorkOrderService
     {
         ServicePrice::where('id', $id)->delete();
         Cache::forget('service_prices');
+        try { Cache::flush(); } catch (Exception $e) {}
         return true;
     }
 }
