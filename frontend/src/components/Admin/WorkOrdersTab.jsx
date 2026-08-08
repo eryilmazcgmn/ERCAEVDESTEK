@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
-import { MessageSquare, ExternalLink, Image, UserCheck, Calendar, AlertCircle, Wrench, RefreshCw, Download, Search } from 'lucide-react';
+import { MessageSquare, ExternalLink, Image, UserCheck, Calendar, AlertCircle, Wrench, RefreshCw, Download, Search, Eye, FileText } from 'lucide-react';
 import { api } from '../../services/api';
+import WorkOrderDetailsModal from './WorkOrderDetailsModal';
 
 export default function WorkOrdersTab({ 
   crmWorkOrders = [],
   crmTechnicians = [],
+  crmServices = [],
   handleUpdateWoStatus,
   handleAssignTechnician,
   backendUrl,
@@ -16,6 +18,7 @@ export default function WorkOrdersTab({
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 10;
 
+  const [selectedDetailsWo, setSelectedDetailsWo] = useState(null);
   const [quickAssignWo, setQuickAssignWo] = useState(null);
   const [selectedTechId, setSelectedTechId] = useState('');
   const [selectedScheduleAt, setSelectedScheduleAt] = useState('');
@@ -110,6 +113,18 @@ export default function WorkOrdersTab({
     return true;
   });
 
+  const getServiceName = (wo) => {
+    const slug = wo.quotation?.service_type || wo.service_type;
+    const match = crmServices.find(s => s.slug === slug || s.id === slug || String(s.id) === String(slug));
+    if (match) return match.name;
+    if (slug === 'tv-mount') return 'TV Montajı';
+    if (slug === 'paint') return 'İç Cephe Boyama';
+    if (slug === 'plumbing') return 'Sıhhi Tesisat';
+    if (slug === 'electric') return 'Elektrik İşleri';
+    if (slug === 'chandelier') return 'Avize Montajı';
+    return slug || 'Genel Hizmet';
+  };
+
   const totalPages = Math.ceil(filteredWorkOrders.length / itemsPerPage);
   const currentItems = filteredWorkOrders.slice((currentPage - 1) * itemsPerPage, currentPage * itemsPerPage);
 
@@ -119,10 +134,10 @@ export default function WorkOrdersTab({
         <div>
           <h2 className="text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
             <Wrench className="w-5 h-5 text-primary-400" />
-            Ankara Çankaya — Usta Görevlendirme ve İş Emirleri
+            İş Emirleri Yönetimi & Detayları
           </h2>
           <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
-            Saha iş emirlerini takip edebilir, durumu değiştirebilir ve saniyeler içinde usta atayabilirsiniz.
+            Gelen işlerin üzerine tıklayarak müşteri form cevaplarını, yüklenen fotoğrafları ve randevu saatlerini detaylı görün.
           </p>
         </div>
 
@@ -240,23 +255,29 @@ export default function WorkOrdersTab({
             <tbody>
               {currentItems.map((wo, i) => (
                 <tr key={i} className="border-b border-slate-200 dark:border-gray-800/50 hover:bg-slate-50 dark:hover:bg-gray-900/20">
-                  <td className="py-3 px-4">
-                    <div className="font-mono text-xs text-primary-400 font-bold">#WO-{wo.id}</div>
-                    <div className="font-bold text-slate-900 dark:text-white text-sm">{wo.customer?.name || 'Müşteri'}</div>
+                  <td className="py-3 px-4 cursor-pointer hover:bg-slate-100/60 dark:hover:bg-gray-800/40 transition rounded-l-xl" onClick={() => setSelectedDetailsWo(wo)}>
+                    <div className="flex items-center gap-1.5 mb-1">
+                      <span className="font-mono text-xs text-primary-500 font-bold">#WO-{wo.id}</span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 border border-blue-200 dark:border-blue-500/20">
+                        {getServiceName(wo)}
+                      </span>
+                    </div>
+                    <div className="font-bold text-slate-900 dark:text-white text-sm hover:text-blue-500 transition flex items-center gap-1">
+                      {wo.customer?.name || 'Müşteri'}
+                      <Eye className="w-3 h-3 text-slate-400 opacity-60" />
+                    </div>
                     <div className="text-xs text-slate-500 dark:text-gray-400">{wo.customer?.phone || '-'}</div>
                   </td>
 
-                  <td className="py-3 px-4 max-w-xs">
+                  <td className="py-3 px-4 max-w-xs cursor-pointer" onClick={() => setSelectedDetailsWo(wo)}>
                     <div className="text-xs text-slate-700 dark:text-gray-300 font-medium truncate">{wo.customer?.address || 'Çankaya / Ankara'}</div>
-                    {wo.photos?.length > 0 && (
-                      <button
-                        type="button"
-                        onClick={() => setSelectedPhotos(wo.photos)}
-                        className="mt-1.5 px-2 py-1 rounded bg-primary-950/60 border border-primary-500/30 text-primary-300 text-[10px] font-bold flex items-center gap-1 hover:bg-primary-900/50 transition"
+                    {(wo.photos?.length > 0 || wo.quotation?.photos?.length > 0) && (
+                      <span
+                        className="mt-1.5 px-2 py-1 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300 text-[10px] font-bold inline-flex items-center gap-1"
                       >
                         <Image className="w-3 h-3" />
-                        {wo.photos.length} Referans Fotoğrafı
-                      </button>
+                        {(wo.photos || wo.quotation?.photos).length} Fotoğraf Var
+                      </span>
                     )}
                   </td>
 
@@ -312,8 +333,17 @@ export default function WorkOrdersTab({
                   <td className="py-3 px-4 flex flex-col gap-1.5">
                     <button
                       type="button"
+                      onClick={() => setSelectedDetailsWo(wo)}
+                      className="w-full px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white text-xs font-bold transition flex items-center justify-center gap-1 cursor-pointer"
+                    >
+                      <Eye className="w-3.5 h-3.5 text-blue-500" />
+                      Detayları Gör
+                    </button>
+
+                    <button
+                      type="button"
                       onClick={() => handleOpenAssignModal(wo)}
-                      className="px-3 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-500 hover:to-blue-500 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
+                      className="px-3 py-1.5 rounded-xl bg-gradient-to-r from-primary-600 to-blue-600 hover:from-primary-500 hover:to-blue-500 text-white text-xs font-bold shadow-md transition flex items-center justify-center gap-1.5 cursor-pointer"
                     >
                       <UserCheck className="w-3.5 h-3.5" />
                       {wo.technician_name ? 'Ustayı Değiştir' : 'Tek Tıkla Usta Ata'}
@@ -467,6 +497,18 @@ export default function WorkOrdersTab({
             </div>
           </div>
         </div>
+      )}
+      {/* Work Order Details Modal */}
+      {selectedDetailsWo && (
+        <WorkOrderDetailsModal
+          workOrder={selectedDetailsWo}
+          onClose={() => setSelectedDetailsWo(null)}
+          crmServices={crmServices}
+          crmTechnicians={crmTechnicians}
+          handleUpdateWoStatus={handleUpdateWoStatus}
+          handleAssignTechnician={handleAssignTechnician}
+          backendUrl={backendUrl}
+        />
       )}
     </div>
   );

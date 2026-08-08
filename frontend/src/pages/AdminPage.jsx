@@ -108,6 +108,8 @@ export default function AdminPage({ admin }) {
                   crmQuotations={admin.crmQuotations}
                   crmWorkOrders={admin.crmWorkOrders}
                   crmServices={admin.crmServices}
+                  crmTechnicians={admin.crmTechnicians}
+                  handleAssignTechnician={admin.handleAssignTechnician}
                   backendUrl={backendUrl}
                   setActiveAdminTab={setActiveAdminTab}
                   handleUpdateWoStatus={admin.handleUpdateWoStatus}
@@ -132,6 +134,7 @@ export default function AdminPage({ admin }) {
                 <WorkOrdersTab
                   crmWorkOrders={admin.crmWorkOrders}
                   crmTechnicians={admin.crmTechnicians}
+                  crmServices={admin.crmServices}
                   handleUpdateWoStatus={admin.handleUpdateWoStatus}
                   handleAssignTechnician={admin.handleAssignTechnician}
                   backendUrl={backendUrl}

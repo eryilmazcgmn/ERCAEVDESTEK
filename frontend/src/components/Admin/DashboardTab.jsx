@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { 
   Users, 
   DollarSign, 
@@ -8,7 +8,9 @@ import {
   UserCheck,
   Zap,
   TrendingUp,
-  PieChart as PieChartIcon
+  PieChart as PieChartIcon,
+  Eye,
+  Wrench
 } from 'lucide-react';
 import {
   ResponsiveContainer,
@@ -21,6 +23,7 @@ import {
   Pie,
   Cell
 } from 'recharts';
+import WorkOrderDetailsModal from './WorkOrderDetailsModal';
 
 const COLORS = ['#a855f7', '#3b82f6', '#ef4444', '#eab308', '#10b981'];
 
@@ -29,10 +32,13 @@ export default function DashboardTab({
   crmQuotations = [],
   crmWorkOrders = [],
   crmServices = [],
+  crmTechnicians = [],
+  handleAssignTechnician,
   backendUrl,
   setActiveAdminTab,
   handleUpdateWoStatus
 }) {
+  const [selectedDetailsWo, setSelectedDetailsWo] = useState(null);
   const getServiceName = (slugOrId) => {
     if (!slugOrId) return 'Genel Hizmet';
     const found = crmServices.find(s => s.slug === slugOrId || s.id === slugOrId || String(s.id) === String(slugOrId));
@@ -103,7 +109,8 @@ export default function DashboardTab({
             {actionRequiredOrders.slice(0, 4).map((wo, i) => (
               <div 
                 key={`action-${i}`} 
-                className="glass-panel p-4 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-950/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:border-amber-400 dark:hover:border-amber-500/50"
+                className="glass-panel p-4 rounded-2xl border border-amber-300 dark:border-amber-500/30 bg-amber-50 dark:bg-amber-950/10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4 transition-all hover:border-amber-400 dark:hover:border-amber-500/50 cursor-pointer"
+                onClick={() => setSelectedDetailsWo(wo)}
               >
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-500/20 flex items-center justify-center text-amber-600 dark:text-amber-400 shrink-0 font-bold font-mono text-xs">
@@ -111,7 +118,12 @@ export default function DashboardTab({
                   </div>
                   <div>
                     <div className="flex items-center gap-2">
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-white">{wo.customer?.name || 'Müşteri'}</h4>
+                      <h4 className="text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                        {wo.customer?.name || 'Müşteri'}
+                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-500/30">
+                          {getServiceName(wo.quotation?.service_type || wo.service_type)}
+                        </span>
+                      </h4>
                       <span className="text-xs text-slate-400">({wo.customer?.phone || '-'})</span>
                     </div>
                     <p className="text-xs text-slate-500 dark:text-gray-400 mt-0.5">
@@ -120,7 +132,15 @@ export default function DashboardTab({
                   </div>
                 </div>
 
-                <div className="flex items-center gap-2 shrink-0 w-full md:w-auto">
+                <div className="flex items-center gap-2 shrink-0 w-full md:w-auto" onClick={e => e.stopPropagation()}>
+                  <button
+                    onClick={() => setSelectedDetailsWo(wo)}
+                    className="flex-1 md:flex-initial px-3.5 py-2 rounded-xl bg-white dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-xs font-bold text-slate-700 dark:text-gray-300 hover:text-slate-900 dark:hover:text-white shadow-sm transition flex items-center justify-center gap-1.5"
+                  >
+                    <Eye className="w-3.5 h-3.5 text-blue-500" />
+                    Detaylar
+                  </button>
+
                   {(wo.status === 'deposit_pending' || wo.status === 'deposit_declared') && (
                     <button
                       onClick={() => handleUpdateWoStatus(wo.id, 'deposit_paid')}
@@ -398,6 +418,18 @@ export default function DashboardTab({
           </div>
         </div>
       </div>
+      {/* Work Order Details Modal */}
+      {selectedDetailsWo && (
+        <WorkOrderDetailsModal
+          workOrder={selectedDetailsWo}
+          onClose={() => setSelectedDetailsWo(null)}
+          crmServices={crmServices}
+          crmTechnicians={crmTechnicians}
+          handleUpdateWoStatus={handleUpdateWoStatus}
+          handleAssignTechnician={handleAssignTechnician}
+          backendUrl={backendUrl}
+        />
+      )}
     </div>
   );
 }
