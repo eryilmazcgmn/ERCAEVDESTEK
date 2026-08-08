@@ -273,6 +273,7 @@ export default function CustomerWizardPage() {
               <StepQuotation
                 sessionId={session.sessionId}
                 selectedService={session.selectedService}
+                services={services}
                 compiledQuotation={session.compiledQuotation}
                 compiledWorkOrder={session.compiledWorkOrder}
                 setActiveStep={session.setActiveStep}

@@ -62,16 +62,22 @@ export default function DashboardTab({
       }))
     : [];
 
+  const getServiceName = (serviceSlug) => {
+    const match = crmServices?.find(s => s.slug === serviceSlug || s.id == serviceSlug);
+    if (match) return match.name;
+    const labels = {
+      'tv-mount': 'TV Montajı',
+      'paint': 'Boyama',
+      'plumbing': 'Sıhhi Tesisat',
+      'electric': 'Elektrik'
+    };
+    return labels[serviceSlug] || serviceSlug;
+  };
+
   // Format service distribution for PieChart
   const servicePieData = crmStats?.service_distribution
     ? Object.entries(crmStats.service_distribution).map(([service, count]) => {
-        const labels = {
-          'tv-mount': 'TV Montajı',
-          'paint': 'Boyama',
-          'plumbing': 'Sıhhi Tesisat',
-          'electric': 'Elektrik'
-        };
-        return { name: labels[service] || service, value: count };
+        return { name: getServiceName(service), value: count };
       })
     : [];
 
@@ -303,9 +309,7 @@ export default function DashboardTab({
                         {q.customer?.name}
                       </span>
                       <span className="text-[10px] text-slate-400 dark:text-gray-500">
-                        {q.service_type === 'tv-mount' ? 'TV Montajı' : 
-                         q.service_type === 'paint' ? 'Boyama' : 
-                         q.service_type === 'plumbing' ? 'Sıhhi Tesisat' : 'Elektrik'}
+                        {getServiceName(q.service_type)}
                       </span>
                     </div>
                     <div className="text-right flex flex-col items-end gap-1">

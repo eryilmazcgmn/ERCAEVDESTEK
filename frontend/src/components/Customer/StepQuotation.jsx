@@ -5,6 +5,7 @@ import { api } from '../../services/api';
 export default function StepQuotation({
   sessionId,
   selectedService,
+  services = [],
   compiledQuotation,
   compiledWorkOrder,
   setActiveStep,
@@ -15,6 +16,13 @@ export default function StepQuotation({
   approvingQuotation,
   backendUrl
 }) {
+  const serviceObj = services.find(s => s.id === selectedService || s.slug === selectedService);
+  const serviceName = serviceObj?.name || compiledQuotation?.service_name || (
+    selectedService === 'tv-mount' ? 'TV Montajı' : 
+    selectedService === 'paint' ? 'Boyama & Dekorasyon' :
+    selectedService === 'plumbing' ? 'Sıhhi Tesisat' : 
+    selectedService === 'electric' ? 'Elektrik İşleri' : selectedService
+  );
   const [copied, setCopied] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [bankInfo, setBankInfo] = useState({
@@ -109,9 +117,7 @@ export default function StepQuotation({
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-gray-400">Hizmet:</span>
                   <span className="font-bold text-slate-900 dark:text-white uppercase">
-                    {selectedService === 'tv-mount' ? 'TV Montajı' : 
-                     selectedService === 'paint' ? 'Boyama & Dekorasyon' :
-                     selectedService === 'plumbing' ? 'Sıhhi Tesisat' : 'Elektrik İşleri'}
+                    {serviceName}
                   </span>
                 </div>
                 <div className="flex justify-between">

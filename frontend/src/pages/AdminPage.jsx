@@ -106,6 +106,7 @@ export default function AdminPage({ admin }) {
                   crmStats={admin.crmStats}
                   crmQuotations={admin.crmQuotations}
                   crmWorkOrders={admin.crmWorkOrders}
+                  crmServices={admin.crmServices}
                   backendUrl={backendUrl}
                   setActiveAdminTab={setActiveAdminTab}
                   handleUpdateWoStatus={admin.handleUpdateWoStatus}
@@ -119,6 +120,7 @@ export default function AdminPage({ admin }) {
               {activeTab === 'quotations' && (
                 <QuotationsTab
                   crmQuotations={admin.crmQuotations}
+                  crmServices={admin.crmServices}
                   backendUrl={backendUrl}
                   setActiveAdminTab={setActiveAdminTab}
                   handleNavigateToWorkOrder={handleNavigateToWorkOrder}

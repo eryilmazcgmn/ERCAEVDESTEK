@@ -1,7 +1,18 @@
 import React from 'react';
 import { ExternalLink, UserCheck, ArrowRight } from 'lucide-react';
 
-export default function QuotationsTab({ crmQuotations = [], backendUrl, setActiveAdminTab, handleNavigateToWorkOrder }) {
+export default function QuotationsTab({ crmQuotations = [], crmServices = [], backendUrl, setActiveAdminTab, handleNavigateToWorkOrder }) {
+  const getServiceTitle = (q) => {
+    if (q.service_name) return q.service_name;
+    const match = crmServices?.find(s => s.slug === q.service_type || s.id === q.service_type);
+    if (match) return match.name;
+    if (q.service_type === 'tv-mount') return 'TV Montajı';
+    if (q.service_type === 'paint') return 'Boyama';
+    if (q.service_type === 'plumbing') return 'Sıhhi Tesisat';
+    if (q.service_type === 'electric') return 'Elektrik';
+    return q.service_type;
+  };
+
   return (
     <div className="glass-panel p-6 rounded-2xl border border-slate-200 dark:border-gray-800/80 space-y-6">
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-4">
@@ -38,9 +49,7 @@ export default function QuotationsTab({ crmQuotations = [], backendUrl, setActiv
                   <div className="text-xs text-slate-500 dark:text-gray-400">{q.customer?.phone || '-'}</div>
                 </td>
                 <td className="py-3 px-4 text-xs font-semibold text-primary-300">
-                  {q.service_type === 'tv-mount' ? 'TV Montajı' : 
-                   q.service_type === 'paint' ? 'Boyama' : 
-                   q.service_type === 'plumbing' ? 'Sıhhi Tesisat' : 'Elektrik'}
+                  {getServiceTitle(q)}
                 </td>
                 <td className="py-3 px-4 text-emerald-400 font-bold">{Number(q.price_details?.total || 0).toLocaleString('tr-TR')} TL</td>
                 <td className="py-3 px-4">
