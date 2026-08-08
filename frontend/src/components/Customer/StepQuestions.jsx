@@ -69,8 +69,10 @@ export default function StepQuestions({
   const dynamicQuestions = useMemo(() => {
     return allQuestions.filter(q => {
       if (q.condition) return q.condition(formAnswers);
-      if (q.parentQuestionId && q.parentOptionValue) {
-        return formAnswers[q.parentQuestionId] === q.parentOptionValue;
+      if (q.parentOptionValue && q.parentOptionValue.trim() !== '') {
+        const allowedOptions = q.parentOptionValue.split(',').map(v => v.trim());
+        const answersList = Object.values(formAnswers);
+        return answersList.some(ans => allowedOptions.includes(ans));
       }
       return true;
     });

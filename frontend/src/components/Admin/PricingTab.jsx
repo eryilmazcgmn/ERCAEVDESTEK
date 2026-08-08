@@ -86,24 +86,42 @@ export default function PricingTab({
 
   const [editQuestionModal, setEditQuestionModal] = useState(null);
 
-  const handlePriceChange = (id, newPrice) => {
-    setLocalPrices(prev =>
-      prev.map(p => (p.id === id ? { ...p, price: parseInt(newPrice) || 0 } : p))
-    );
-  };
-
-  const handleLabelChange = (id, newSubText) => {
-    setLocalPrices(prev =>
-      prev.map(p => {
-        if (p.id === id) {
-          const parts = (p.label || '').split(':');
-          const titlePrefix = parts[0] ? parts[0].trim() : '';
-          const newLabel = titlePrefix ? `${titlePrefix}: ${newSubText}` : newSubText;
-          return { ...p, label: newLabel, option_value: newSubText };
+  // All available options from OTHER questions in this service category
+  const allOtherOptions = useMemo(() => {
+    const options = [];
+    Object.keys(groupedPrices).forEach(qId => {
+      if (editQuestionModal && qId === editQuestionModal.questionId) return;
+      const items = groupedPrices[qId] || [];
+      const qTitle = items[0]?.label?.split(':')[0] || qId;
+      items.forEach(item => {
+        if (item.option_value && !options.some(o => o.value === item.option_value)) {
+          options.push({
+            questionId: qId,
+            questionTitle: qTitle,
+            value: item.option_value
+          });
         }
-        return p;
-      })
-    );
+      });
+    });
+    return options;
+  }, [groupedPrices, editQuestionModal]);
+
+  const selectedParentValues = useMemo(() => {
+    if (!editQuestionModal?.parentOptionValue) return [];
+    return editQuestionModal.parentOptionValue.split(',').map(v => v.trim()).filter(Boolean);
+  }, [editQuestionModal?.parentOptionValue]);
+
+  const toggleParentOption = (val) => {
+    let updated;
+    if (selectedParentValues.includes(val)) {
+      updated = selectedParentValues.filter(v => v !== val);
+    } else {
+      updated = [...selectedParentValues, val];
+    }
+    setEditQuestionModal(prev => ({
+      ...prev,
+      parentOptionValue: updated.join(', ')
+    }));
   };
 
   const handleOpenEditQuestion = (qId, currentTitle, currentType, parentQId = '', parentOptVal = '') => {
@@ -331,45 +349,46 @@ export default function PricingTab({
                 </select>
               </div>
 
-              {/* Koşullu Mantık Bölümü */}
+              {/* Koşullu Mantık Bölümü (Çoklu Cevap Seçimi) */}
               <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/20 space-y-3">
-                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
-                  <GitBranch className="w-4 h-4" />
-                  <span>🔀 Koşullu Gösterim Mantığı (İsteğe Bağlı)</span>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                    <GitBranch className="w-4 h-4 text-amber-500" />
+                    <span>🔀 Bu Soru Hangi Cevap(lar) Seçildiğinde Görünsün?</span>
+                  </div>
+                  <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold bg-amber-100 dark:bg-amber-900/40 px-2 py-0.5 rounded-full">
+                    Çoklu Seçim
+                  </span>
                 </div>
                 <p className="text-[11px] text-slate-500 dark:text-gray-400">
-                  Bu sorunun sadece müşterinin <strong>önceki bir soruda seçtiği belirli bir cevaba göre</strong> görünmesini isterseniz aşağıdan kural tanımlayın.
+                  Aşağıdaki cevaplardan <strong>işaretlediğiniz herhangi biri</strong> müşteri tarafından seçildiğinde bu soru ekranda açılır. Hiçbirini seçmezseniz soru her zaman görünür.
                 </p>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-gray-400 mb-1">Bağlı Olduğu Soru</label>
-                    <select
-                      value={editQuestionModal.parentQuestionId || ''}
-                      onChange={(e) => setEditQuestionModal(prev => ({ ...prev, parentQuestionId: e.target.value, parentOptionValue: '' }))}
-                      className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                    >
-                      <option value="">-- Her Zaman Göster (Bağımsız) --</option>
-                      {currentServiceQuestions.filter(q => q.id !== editQuestionModal.questionId).map(pq => (
-                        <option key={pq.id} value={pq.id}>{pq.title}</option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {editQuestionModal.parentQuestionId && (
-                    <div>
-                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-gray-400 mb-1">Hangi Cevap Seçilirse Gönsünsün?</label>
-                      <select
-                        value={editQuestionModal.parentOptionValue || ''}
-                        onChange={(e) => setEditQuestionModal(prev => ({ ...prev, parentOptionValue: e.target.value }))}
-                        className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
-                      >
-                        <option value="">-- Tüm Cevaplarda Göster --</option>
-                        {groupedPrices[editQuestionModal.parentQuestionId]?.map(opt => (
-                          <option key={opt.id} value={opt.option_value}>{opt.option_value}</option>
-                        ))}
-                      </select>
-                    </div>
+                <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
+                  {allOtherOptions.length > 0 ? (
+                    allOtherOptions.map((opt, i) => {
+                      const isChecked = selectedParentValues.includes(opt.value);
+                      return (
+                        <label key={i} className={`flex items-center gap-2.5 p-2.5 rounded-xl border text-xs cursor-pointer transition ${
+                          isChecked
+                            ? 'bg-amber-100/80 dark:bg-amber-900/40 border-amber-400 text-amber-900 dark:text-amber-200 font-semibold shadow-sm'
+                            : 'bg-white dark:bg-gray-950 border-slate-200 dark:border-gray-800 text-slate-700 dark:text-gray-300 hover:border-amber-300'
+                        }`}>
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={() => toggleParentOption(opt.value)}
+                            className="rounded border-amber-400 text-amber-600 focus:ring-amber-500 w-4 h-4 cursor-pointer"
+                          />
+                          <div className="flex flex-col">
+                            <span className="font-bold text-xs text-slate-900 dark:text-white">{opt.value}</span>
+                            <span className="text-[10px] text-slate-400 dark:text-gray-400 font-normal">Soru: {opt.questionTitle}</span>
+                          </div>
+                        </label>
+                      );
+                    })
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">Bağlanabilecek başka soru seçeneği bulunmuyor.</p>
                   )}
                 </div>
               </div>
