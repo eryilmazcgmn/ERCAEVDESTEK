@@ -281,18 +281,17 @@ export default function StepChatAssistant({
             {/* Options Buttons Grid */}
             <div className="pl-11 pr-2 animate-fade-in-up">
               {(activeQuestion.type === 'radio' || activeQuestion.type === 'select' || !activeQuestion.type) && (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2.5">
                   {activeQuestion.options.map((opt, idx) => {
-                    const priceAddon = activeQuestion.pricing ? activeQuestion.pricing[opt] : 0;
                     return (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => handleSelectOption(activeQuestion.id, opt)}
                         disabled={isTyping}
-                        className="w-full text-left p-3.5 rounded-2xl border border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50/50 dark:hover:bg-primary-900/20 active:scale-[0.99] transition-all flex items-center justify-between group shadow-sm"
+                        className="w-full aspect-[2/1] p-3 rounded-2xl border-2 border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900 hover:border-primary-500 dark:hover:border-primary-500 hover:bg-primary-50/60 dark:hover:bg-primary-900/30 active:scale-[0.97] transition-all flex items-center justify-center text-center group shadow-sm hover:shadow-md"
                       >
-                        <span className="text-sm font-semibold text-slate-800 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400">
+                        <span className="text-sm font-bold text-slate-800 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400 leading-snug">
                           {opt}
                         </span>
                       </button>
