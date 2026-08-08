@@ -438,10 +438,10 @@ class AdminController extends Controller
             Log::error('Admin assignTechnician error', ['exception' => $e, 'work_order_id' => $id]);
             return response()->json([
                 'status' => false,
-                'message' => 'Teknisyen atanamadı.',
+                'message' => 'Teknisyen atanamadı: ' . $e->getMessage(),
                 'data' => null,
-                'errors' => ['assign' => ['Atama işlemi başarısız oldu.']]
-            ], 500);
+                'errors' => ['assign' => [$e->getMessage()]]
+            ], 400);
         }
     }
 

@@ -137,16 +137,17 @@ export function useAdmin() {
   }, []);
 
   const handleUpdateWoStatus = useCallback(async (woId, newStatus, notes = null, photo = null) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     try {
       let data;
       if (loggedUser?.role === 'technician') {
-        data = await api.updateTechnicianWorkOrderStatus(woId, newStatus, notes, photo, adminToken);
+        data = await api.updateTechnicianWorkOrderStatus(woId, newStatus, notes, photo, activeToken);
       } else {
-        data = await api.updateWorkOrderStatus(woId, newStatus, adminToken);
+        data = await api.updateWorkOrderStatus(woId, newStatus, activeToken);
       }
 
       if (data.status || data.success) {
-        fetchCrmStats();
+        fetchCrmStats(activeToken);
         toast.success('İş emri durumu güncellendi.');
       }
     } catch (err) {
@@ -156,10 +157,11 @@ export function useAdmin() {
   }, [loggedUser?.role, adminToken, fetchCrmStats]);
 
   const handleAssignTechnician = useCallback(async (woId, technicianId, scheduledAt) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     try {
-      const data = await api.assignTechnician(woId, technicianId, scheduledAt, adminToken);
+      const data = await api.assignTechnician(woId, technicianId, scheduledAt, activeToken);
       if (data.status || data.success) {
-        fetchCrmStats();
+        fetchCrmStats(activeToken);
         toast.success('Teknisyen başarıyla atandı.');
       }
     } catch (err) {

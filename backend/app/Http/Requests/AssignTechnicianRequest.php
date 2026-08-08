@@ -17,8 +17,15 @@ class AssignTechnicianRequest extends FormRequest
 
     protected function prepareForValidation(): void
     {
-        if (empty($this->scheduled_at)) {
+        $scheduledAt = $this->scheduled_at;
+        if (empty($scheduledAt)) {
             $this->merge(['scheduled_at' => null]);
+        } else {
+            $formatted = str_replace('T', ' ', (string) $scheduledAt);
+            if (strlen($formatted) === 16) {
+                $formatted .= ':00';
+            }
+            $this->merge(['scheduled_at' => $formatted]);
         }
     }
 
@@ -26,7 +33,7 @@ class AssignTechnicianRequest extends FormRequest
     {
         return [
             'technician_id' => 'required|integer|exists:users,id',
-            'scheduled_at' => 'nullable|date_format:Y-m-d H:i:s,Y-m-d\TH:i'
+            'scheduled_at' => 'nullable|string'
         ];
     }
 

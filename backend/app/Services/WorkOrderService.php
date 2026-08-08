@@ -114,7 +114,7 @@ class WorkOrderService
     {
         return DB::transaction(function () use ($id, $technicianId, $scheduledAt) {
             $workOrder = WorkOrder::findOrFail($id);
-            $technician = User::where('role', 'technician')->findOrFail($technicianId);
+            $technician = User::findOrFail($technicianId);
 
             $workOrder->update([
                 'technician_id' => $technician->id,
@@ -129,7 +129,7 @@ class WorkOrderService
                 'technician_name' => $technician->name,
             ]);
 
-            return $workOrder;
+            return $workOrder->fresh(['customer', 'quotation', 'technician']);
         });
     }
 
