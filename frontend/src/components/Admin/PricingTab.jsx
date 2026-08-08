@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Info, Plus, Trash2, X, HelpCircle, Layers, ListFilter } from 'lucide-react';
+import { Save, RefreshCw, Info, Plus, Trash2, X, HelpCircle, Layers, ListFilter, ChevronUp, ChevronDown } from 'lucide-react';
 
 export default function PricingTab({
   crmPrices,
@@ -7,6 +7,7 @@ export default function PricingTab({
   handleBulkUpdatePrices,
   handleCreateServicePrice,
   handleDeleteServicePrice,
+  handleReorderServiceQuestions,
   loadingCrmData,
   fetchCrmPrices
 }) {
@@ -391,20 +392,59 @@ export default function PricingTab({
       {/* Pricing Inputs Grouped by Question */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {Object.keys(groupedPrices).length > 0 ? (
-          Object.keys(groupedPrices).map(questionId => {
+          Object.keys(groupedPrices).map((questionId, qIndex, qArray) => {
             const items = groupedPrices[questionId];
             const questionTitle = items[0]?.label.split(':')[0] || questionId;
             const qType = items[0]?.question_type || 'radio';
+
+            const handleMoveQuestion = (direction) => {
+              const targetIndex = direction === 'up' ? qIndex - 1 : qIndex + 1;
+              if (targetIndex < 0 || targetIndex >= qArray.length) return;
+
+              const newQuestionKeys = [...qArray];
+              const temp = newQuestionKeys[qIndex];
+              newQuestionKeys[qIndex] = newQuestionKeys[targetIndex];
+              newQuestionKeys[targetIndex] = temp;
+
+              if (handleReorderServiceQuestions) {
+                handleReorderServiceQuestions(activeService, newQuestionKeys);
+              }
+            };
 
             return (
               <div key={questionId} className="glass-panel p-5 rounded-2xl border border-slate-200 dark:border-gray-800/80 space-y-4">
                 <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-800 pb-3">
                   <div className="flex items-center gap-2">
+                    {/* Sıralama Butonları */}
+                    <div className="flex items-center gap-1 bg-slate-100 dark:bg-gray-900 rounded-lg p-1 border border-slate-200 dark:border-gray-800">
+                      <button
+                        type="button"
+                        disabled={qIndex === 0}
+                        onClick={() => handleMoveQuestion('up')}
+                        className="p-1 text-slate-500 hover:text-blue-500 disabled:opacity-30 transition rounded hover:bg-white dark:hover:bg-gray-800 cursor-pointer"
+                        title="Yukarı Taşı (Sorunun Sırasını Öne Al)"
+                      >
+                        <ChevronUp className="w-3.5 h-3.5" />
+                      </button>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 px-1">
+                        Soru {qIndex + 1}
+                      </span>
+                      <button
+                        type="button"
+                        disabled={qIndex === qArray.length - 1}
+                        onClick={() => handleMoveQuestion('down')}
+                        className="p-1 text-slate-500 hover:text-blue-500 disabled:opacity-30 transition rounded hover:bg-white dark:hover:bg-gray-800 cursor-pointer"
+                        title="Aşağı Taşı (Sorunun Sırasını Arkaya Al)"
+                      >
+                        <ChevronDown className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
+
                     <h3 className="text-sm font-bold text-slate-800 dark:text-gray-200 capitalize">
                       {questionTitle}
                     </h3>
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-500/20">
-                      {qType === 'select' ? 'Açılır Liste (Dropdown)' : 'Radyo Butonlar'}
+                      {qType === 'select' ? 'Açılır Liste' : 'Radyo'}
                     </span>
                   </div>
                   <button

@@ -260,6 +260,16 @@ export const api = {
     return res;
   },
 
+  // Admin Endpoint: Reorder questions for a service
+  reorderServiceQuestions: async (service_type, ordered_question_ids, token) => {
+    const res = await apiClient.post(
+      '/admin/service-prices/reorder',
+      { service_type, ordered_question_ids },
+      getAuthHeader(token)
+    );
+    return res;
+  },
+
   // Admin Endpoint: Delete a service price item
   deleteServicePrice: async (id, token) => {
     const res = await apiClient.delete(

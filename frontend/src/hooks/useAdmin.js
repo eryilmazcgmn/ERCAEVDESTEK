@@ -232,6 +232,22 @@ export function useAdmin() {
     }
   }, [adminToken, fetchCrmPrices]);
 
+  const handleReorderServiceQuestions = useCallback(async (serviceType, orderedQuestionIds) => {
+    setLoadingCrmData(true);
+    try {
+      const data = await api.reorderServiceQuestions(serviceType, orderedQuestionIds, adminToken);
+      if (data.status || data.success) {
+        toast.success('Soru sıralaması güncellendi.');
+        fetchCrmPrices();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Sıralama güncellenirken hata oluştu.');
+    } finally {
+      setLoadingCrmData(false);
+    }
+  }, [adminToken, fetchCrmPrices]);
+
   const handleCreateTechnician = useCallback(async (name, username, password) => {
     setLoadingCrmData(true);
     try {
@@ -377,6 +393,7 @@ export function useAdmin() {
     handleUpdateService,
     handleDeleteService,
     handleCreateServicePrice,
-    handleDeleteServicePrice
+    handleDeleteServicePrice,
+    handleReorderServiceQuestions
   };
 }

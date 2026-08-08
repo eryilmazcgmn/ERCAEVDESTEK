@@ -244,7 +244,11 @@ class WorkOrderService
     public function getServicePrices(): array
     {
         return Cache::remember('service_prices', 600, function () {
-            return ServicePrice::orderBy('service_type')->orderBy('question_id')->get()->toArray();
+            return ServicePrice::orderBy('service_type')
+                ->orderBy('sort_order', 'asc')
+                ->orderBy('id', 'asc')
+                ->get()
+                ->toArray();
         });
     }
 
@@ -253,16 +257,28 @@ class WorkOrderService
         return DB::transaction(function () use ($prices) {
             foreach ($prices as $item) {
                 if (isset($item['id'])) {
-                    ServicePrice::where('id', $item['id'])->update([
-                        'price' => $item['price'],
-                        'label' => $item['label'] ?? null
-                    ]);
+                    $updateData = ['price' => $item['price']];
+                    if (isset($item['label'])) $updateData['label'] = $item['label'];
+                    if (isset($item['sort_order'])) $updateData['sort_order'] = (int) $item['sort_order'];
+                    
+                    ServicePrice::where('id', $item['id'])->update($updateData);
                 }
             }
 
-            // Invalidate cache after update
             Cache::forget('service_prices');
+            return true;
+        });
+    }
 
+    public function reorderQuestions(string $serviceType, array $orderedQuestionIds): bool
+    {
+        return DB::transaction(function () use ($serviceType, $orderedQuestionIds) {
+            foreach ($orderedQuestionIds as $index => $questionId) {
+                ServicePrice::where('service_type', $serviceType)
+                    ->where('question_id', $questionId)
+                    ->update(['sort_order' => $index + 1]);
+            }
+            Cache::forget('service_prices');
             return true;
         });
     }

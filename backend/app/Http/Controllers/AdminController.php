@@ -511,6 +511,40 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Reorder questions for a service.
+     */
+    public function reorderServiceQuestions(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'service_type' => 'required|string|max:100',
+                'ordered_question_ids' => 'required|array',
+                'ordered_question_ids.*' => 'string|max:100',
+            ]);
+
+            $this->workOrderService->reorderQuestions(
+                $validated['service_type'],
+                $validated['ordered_question_ids']
+            );
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Soru sıralaması güncellendi.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin reorderServiceQuestions error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Sıralama güncellenirken hata oluştu.',
+                'data' => null,
+                'errors' => ['reorder' => [$e->getMessage()]]
+            ], 500);
+        }
+    }
+
     // ────────────────────────────────────────────────
     // Service CRUD (Admin Panel)
     // ────────────────────────────────────────────────

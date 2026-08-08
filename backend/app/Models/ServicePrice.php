@@ -13,5 +13,6 @@ class ServicePrice extends Model
         'option_value',
         'label',
         'price',
+        'sort_order',
     ];
 }

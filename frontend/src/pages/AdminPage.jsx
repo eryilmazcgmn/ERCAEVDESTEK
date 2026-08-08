@@ -146,6 +146,7 @@ export default function AdminPage({ admin }) {
                   handleBulkUpdatePrices={admin.handleBulkUpdatePrices}
                   handleCreateServicePrice={admin.handleCreateServicePrice}
                   handleDeleteServicePrice={admin.handleDeleteServicePrice}
+                  handleReorderServiceQuestions={admin.handleReorderServiceQuestions}
                   loadingCrmData={admin.loadingCrmData}
                   fetchCrmPrices={admin.fetchCrmPrices}
                 />
