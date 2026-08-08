@@ -293,8 +293,24 @@ export const api = {
     return res;
   },
 
-  // Admin Endpoint: Delete whole question
-  deleteServiceQuestion: async (service_type, question_id, question_title = null, item_ids = [], token = null) => {
+  // Admin Endpoint: Delete whole question (backward compatible with legacy 3-param call)
+  deleteServiceQuestion: async (service_type, question_id, arg3 = null, arg4 = [], arg5 = null) => {
+    let question_title = null;
+    let item_ids = [];
+    let token = null;
+
+    if (typeof arg3 === 'string' && (arg3.startsWith('eyJ') || arg3.length > 30)) {
+      token = arg3;
+    } else {
+      question_title = typeof arg3 === 'string' ? arg3 : null;
+      if (Array.isArray(arg4)) {
+        item_ids = arg4;
+        token = arg5;
+      } else if (typeof arg4 === 'string') {
+        token = arg4;
+      }
+    }
+
     const res = await apiClient.post(
       '/admin/service-prices/delete-question',
       { service_type, question_id, question_title, item_ids },

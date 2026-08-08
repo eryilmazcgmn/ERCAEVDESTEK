@@ -292,9 +292,11 @@ export function useAdmin() {
 
   const handleDeleteServiceQuestion = useCallback(async (serviceType, questionId, questionTitle = null, itemIds = []) => {
     const activeToken = adminToken || sessionStorage.getItem('adminToken');
+    const safeTitle = typeof questionTitle === 'string' ? questionTitle : null;
+    const safeItemIds = Array.isArray(itemIds) ? itemIds : [];
     setLoadingCrmData(true);
     try {
-      const data = await api.deleteServiceQuestion(serviceType, questionId, questionTitle, itemIds, activeToken);
+      const data = await api.deleteServiceQuestion(serviceType, questionId, safeTitle, safeItemIds, activeToken);
       if (data.status || data.success) {
         toast.success('Soru ve tüm seçenekleri silindi.');
         await fetchCrmPrices(activeToken);

@@ -152,9 +152,10 @@ export default function PricingTab({
 
   const onDeleteQuestion = async (questionId, questionTitle = null, itemIds = []) => {
     if (!window.confirm('Bu soruyu ve tüm seçeneklerini silmek istediğinizden emin misiniz?')) return;
-    setLocalPrices(prev => prev.filter(p => p.question_id !== questionId && (!itemIds.length || !itemIds.includes(p.id))));
+    const safeIds = Array.isArray(itemIds) ? itemIds : [];
+    setLocalPrices(prev => prev.filter(p => p.question_id !== questionId && (!safeIds.length || !safeIds.includes(p.id))));
     if (handleDeleteServiceQuestion) {
-      const ok = await handleDeleteServiceQuestion(activeService, questionId, questionTitle, itemIds);
+      const ok = await handleDeleteServiceQuestion(activeService, questionId, questionTitle, safeIds);
       if (!ok && fetchCrmPrices) {
         fetchCrmPrices();
       }
