@@ -17,7 +17,16 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           script: |
-            cd ~/projects/ERCAEVDESTEK
+            if [ -d "$HOME/ERCAEVDESTEK" ]; then
+              cd "$HOME/ERCAEVDESTEK"
+            elif [ -d "/var/www/ERCAEVDESTEK" ]; then
+              cd "/var/www/ERCAEVDESTEK"
+            elif [ -d "$HOME/projects/ERCAEVDESTEK" ]; then
+              cd "$HOME/projects/ERCAEVDESTEK"
+            else
+              echo "Project directory not found!"
+              exit 1
+            fi
             chmod +x deploy.sh
-            git pull
+            git pull origin main
             ./deploy.sh
