@@ -266,4 +266,25 @@ class WorkOrderService
             return true;
         });
     }
+
+    public function createServicePrice(array $data): ServicePrice
+    {
+        $sp = ServicePrice::create([
+            'service_type' => $data['service_type'],
+            'question_id' => $data['question_id'],
+            'option_value' => $data['option_value'],
+            'label' => $data['label'],
+            'price' => (int) ($data['price'] ?? 0),
+        ]);
+
+        Cache::forget('service_prices');
+        return $sp;
+    }
+
+    public function deleteServicePrice(int $id): bool
+    {
+        ServicePrice::where('id', $id)->delete();
+        Cache::forget('service_prices');
+        return true;
+    }
 }

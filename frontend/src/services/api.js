@@ -250,6 +250,25 @@ export const api = {
     return res;
   },
 
+  // Admin Endpoint: Create a new service price question option
+  createServicePrice: async (data, token) => {
+    const res = await apiClient.post(
+      '/admin/service-prices/create',
+      data,
+      getAuthHeader(token)
+    );
+    return res;
+  },
+
+  // Admin Endpoint: Delete a service price item
+  deleteServicePrice: async (id, token) => {
+    const res = await apiClient.delete(
+      `/admin/service-prices/${id}`,
+      getAuthHeader(token)
+    );
+    return res;
+  },
+
   // Public Settings: Get Bank Info
   fetchBankInfo: async () => {
     const res = await apiClient.get('/settings/bank');

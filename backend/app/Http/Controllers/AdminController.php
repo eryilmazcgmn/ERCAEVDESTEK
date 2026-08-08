@@ -453,6 +453,63 @@ class AdminController extends Controller
         }
     }
 
+    /**
+     * Create a new service price (question option).
+     */
+    public function createServicePrice(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'service_type' => 'required|string|max:100',
+                'question_id' => 'required|string|max:100',
+                'option_value' => 'required|string|max:100',
+                'label' => 'required|string|max:255',
+                'price' => 'nullable|integer|min:0',
+            ]);
+
+            $sp = $this->workOrderService->createServicePrice($validated);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Soru seçeneği eklendi.',
+                'data' => $sp,
+                'errors' => null
+            ], 201);
+        } catch (Exception $e) {
+            Log::error('Admin createServicePrice error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Soru seçeneği eklenirken hata: ' . $e->getMessage(),
+                'data' => null,
+                'errors' => ['price' => [$e->getMessage()]]
+            ], 400);
+        }
+    }
+
+    /**
+     * Delete a service price item.
+     */
+    public function deleteServicePrice(int $id): JsonResponse
+    {
+        try {
+            $this->workOrderService->deleteServicePrice($id);
+            return response()->json([
+                'status' => true,
+                'message' => 'Soru seçeneği silindi.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin deleteServicePrice error', ['exception' => $e, 'id' => $id]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Silme işlemi başarısız.',
+                'data' => null,
+                'errors' => ['server' => ['Silme başarısız.']]
+            ], 500);
+        }
+    }
+
     // ────────────────────────────────────────────────
     // Service CRUD (Admin Panel)
     // ────────────────────────────────────────────────

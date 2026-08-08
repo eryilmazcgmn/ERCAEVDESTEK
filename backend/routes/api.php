@@ -24,6 +24,7 @@ Route::middleware(['throttle:30,1'])->group(function () {
     Route::get('/settings', [SettingController::class, 'index']);
     Route::get('/settings/bank', [SettingController::class, 'getBankInfo']);
     Route::get('/services', [ServiceController::class, 'index']);
+    Route::get('/service-prices', [AdminController::class, 'getServicePrices']);
     Route::get('/tracking/{session_id}', [QuotationController::class, 'trackingInfo']);
     Route::get('/tracking-by-phone/{phone}', [QuotationController::class, 'trackingByPhone']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
@@ -93,6 +94,8 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     // Service Prices management
     Route::get('/service-prices', [AdminController::class, 'getServicePrices']);
     Route::post('/service-prices/bulk-update', [AdminController::class, 'updateServicePrices']);
+    Route::post('/service-prices/create', [AdminController::class, 'createServicePrice']);
+    Route::delete('/service-prices/{id}', [AdminController::class, 'deleteServicePrice']);
 
     // Service management (CRUD)
     Route::get('/services', [AdminController::class, 'getServices']);

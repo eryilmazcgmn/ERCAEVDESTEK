@@ -197,6 +197,41 @@ export function useAdmin() {
     }
   }, [adminToken, fetchCrmPrices]);
 
+  const handleCreateServicePrice = useCallback(async (priceData) => {
+    setLoadingCrmData(true);
+    try {
+      const data = await api.createServicePrice(priceData, adminToken);
+      if (data.status || data.success) {
+        toast.success('Soru ve seçenek başarıyla eklendi.');
+        fetchCrmPrices();
+        return true;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Soru eklenirken hata oluştu.');
+    } finally {
+      setLoadingCrmData(false);
+    }
+    return false;
+  }, [adminToken, fetchCrmPrices]);
+
+  const handleDeleteServicePrice = useCallback(async (id) => {
+    if (!window.confirm('Bu soru seçeneğini silmek istediğinizden emin misiniz?')) return;
+    setLoadingCrmData(true);
+    try {
+      const data = await api.deleteServicePrice(id, adminToken);
+      if (data.status || data.success) {
+        toast.success('Seçenek silindi.');
+        fetchCrmPrices();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Seçenek silinirken hata oluştu.');
+    } finally {
+      setLoadingCrmData(false);
+    }
+  }, [adminToken, fetchCrmPrices]);
+
   const handleCreateTechnician = useCallback(async (name, username, password) => {
     setLoadingCrmData(true);
     try {
@@ -340,6 +375,8 @@ export function useAdmin() {
     fetchCrmServices,
     handleCreateService,
     handleUpdateService,
-    handleDeleteService
+    handleDeleteService,
+    handleCreateServicePrice,
+    handleDeleteServicePrice
   };
 }

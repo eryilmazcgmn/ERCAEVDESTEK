@@ -140,7 +140,10 @@ export default function AdminPage({ admin }) {
               {activeTab === 'pricing' && (
                 <PricingTab
                   crmPrices={admin.crmPrices}
+                  crmServices={admin.crmServices}
                   handleBulkUpdatePrices={admin.handleBulkUpdatePrices}
+                  handleCreateServicePrice={admin.handleCreateServicePrice}
+                  handleDeleteServicePrice={admin.handleDeleteServicePrice}
                   loadingCrmData={admin.loadingCrmData}
                   fetchCrmPrices={admin.fetchCrmPrices}
                 />

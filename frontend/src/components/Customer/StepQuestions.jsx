@@ -1,7 +1,9 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FileText, AlertTriangle, ChevronRight, ChevronLeft, Tag } from 'lucide-react';
 import { toast } from 'sonner';
 import { servicesConfig, calculateQuotation } from '../../config/servicesConfig';
+import { api } from '../../services/api';
+import axios from 'axios';
 
 export default function StepQuestions({
   selectedService,
@@ -9,13 +11,82 @@ export default function StepQuestions({
   handleInputChange,
   setActiveStep
 }) {
-  const allQuestions = servicesConfig[selectedService] || [];
-  const dynamicQuestions = allQuestions.filter(q => !q.condition || q.condition(formAnswers));
+  const [dbQuestions, setDbQuestions] = useState([]);
+  const [loading, setLoading] = useState(true);
 
-  // Live price estimate
+  // Fetch dynamic questions from DB
+  useEffect(() => {
+    let isMounted = true;
+    const apiUrl = api.getApiUrl();
+    axios.get(`${apiUrl}/service-prices`)
+      .then(res => {
+        if (!isMounted) return;
+        const prices = res.data?.data || res.data || [];
+        const servicePrices = prices.filter(p => p.service_type === selectedService);
+
+        if (servicePrices.length > 0) {
+          // Group by question_id
+          const grouped = servicePrices.reduce((groups, item) => {
+            const qId = item.question_id;
+            if (!groups[qId]) {
+              groups[qId] = {
+                id: qId,
+                label: item.label.split(':')[0]?.trim() || qId,
+                type: 'radio',
+                options: [],
+                pricing: {}
+              };
+            }
+            groups[qId].options.push(item.option_value);
+            groups[qId].pricing[item.option_value] = item.price;
+            return groups;
+          }, {});
+
+          setDbQuestions(Object.values(grouped));
+        } else {
+          setDbQuestions([]);
+        }
+      })
+      .catch(err => {
+        console.warn('Could not fetch DB questions, fallback to static config:', err);
+        setDbQuestions([]);
+      })
+      .finally(() => {
+        if (isMounted) setLoading(false);
+      });
+
+    return () => { isMounted = false; };
+  }, [selectedService]);
+
+  // Combined questions: DB questions if present, otherwise static config
+  const allQuestions = useMemo(() => {
+    if (dbQuestions.length > 0) return dbQuestions;
+    return servicesConfig[selectedService] || [];
+  }, [dbQuestions, selectedService]);
+
+  const dynamicQuestions = useMemo(() => {
+    return allQuestions.filter(q => !q.condition || q.condition(formAnswers));
+  }, [allQuestions, formAnswers]);
+
+  // Live price estimate calculation
   const priceEstimate = useMemo(() => {
+    if (dbQuestions.length > 0) {
+      let total = 0;
+      let items = [];
+      dbQuestions.forEach(q => {
+        const answer = formAnswers[q.id];
+        if (answer && q.pricing && q.pricing[answer]) {
+          const price = q.pricing[answer];
+          if (price > 0) {
+            items.push({ description: `${q.label}: ${answer}`, price });
+            total += price;
+          }
+        }
+      });
+      return { items, totalPrice: total > 0 ? total : 500 };
+    }
     return calculateQuotation(selectedService, formAnswers);
-  }, [selectedService, formAnswers]);
+  }, [dbQuestions, selectedService, formAnswers]);
 
   const handleNextStep = () => {
     if (dynamicQuestions.length > 0) {
@@ -87,33 +158,41 @@ export default function StepQuestions({
                   />
                 )}
                 
-                {q.type === 'radio' && (
+                {(q.type === 'radio' || !q.type) && (
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
                     {q.options.map((opt, i) => {
                       const isSelected = formAnswers[q.id] === opt;
+                      const optPrice = q.pricing ? q.pricing[opt] : null;
                       return (
                         <label 
                           key={i} 
-                          className={`flex items-center gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
+                          className={`flex items-center justify-between p-3.5 rounded-xl border cursor-pointer transition-all ${
                             isSelected 
                               ? 'border-primary-500 bg-primary-50 dark:bg-primary-900/20 text-slate-900 dark:text-white shadow-sm shadow-primary-500/10'
                               : 'border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/50 text-slate-600 dark:text-gray-400 hover:border-slate-300 dark:hover:border-gray-600 hover:text-slate-800 dark:hover:text-gray-200'
                           }`}
                         >
-                          <input 
-                            type="radio" 
-                            name={q.id} 
-                            value={opt}
-                            checked={isSelected}
-                            onChange={() => handleInputChange(q.id, opt)}
-                            className="hidden" 
-                          />
-                          <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition ${
-                            isSelected ? 'border-primary-500' : 'border-slate-300 dark:border-gray-600'
-                          }`}>
-                            {isSelected && <div className="w-2 h-2 rounded-full bg-primary-500"></div>}
+                          <div className="flex items-center gap-3">
+                            <input 
+                              type="radio" 
+                              name={q.id} 
+                              value={opt}
+                              checked={isSelected}
+                              onChange={() => handleInputChange(q.id, opt)}
+                              className="hidden" 
+                            />
+                            <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition ${
+                              isSelected ? 'border-primary-500' : 'border-slate-300 dark:border-gray-600'
+                            }`}>
+                              {isSelected && <div className="w-2 h-2 rounded-full bg-primary-500"></div>}
+                            </div>
+                            <span className="text-sm font-medium">{opt}</span>
                           </div>
-                          <span className="text-sm font-medium">{opt}</span>
+                          {optPrice > 0 && (
+                            <span className="text-xs font-semibold text-green-600 dark:text-green-400 shrink-0 ml-2">
+                              +₺{optPrice.toLocaleString('tr-TR')}
+                            </span>
+                          )}
                         </label>
                       );
                     })}
@@ -125,7 +204,8 @@ export default function StepQuestions({
             <div className="p-6 rounded-2xl bg-yellow-50 dark:bg-yellow-950/20 border border-yellow-200 dark:border-yellow-500/20 text-yellow-700 dark:text-yellow-300 text-sm flex gap-3">
               <AlertTriangle className="w-5 h-5 flex-shrink-0" />
               <div>
-                <strong>Dinamik form yüklenemedi.</strong> Lütfen ilk adımda geçerli bir kategori seçtiğinizden emin olun.
+                <strong>{loading ? 'Sorular yükleniyor...' : 'Bu hizmet için henüz detay sorusu eklenmemiş.'}</strong>
+                {!loading && ' Devam etmek için "İletişim Bilgilerine Geç" butonuna tıklayabilirsiniz.'}
               </div>
             </div>
           )}
