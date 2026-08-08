@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, RefreshCw, Info, Plus, Trash2, Edit2, X, HelpCircle, Layers, ListFilter, ChevronUp, ChevronDown } from 'lucide-react';
+import { Save, RefreshCw, Info, Plus, Trash2, Edit2, X, HelpCircle, Layers, ListFilter, ChevronUp, ChevronDown, GitBranch } from 'lucide-react';
 
 export default function PricingTab({
   crmPrices,
@@ -106,11 +106,13 @@ export default function PricingTab({
     );
   };
 
-  const handleOpenEditQuestion = (qId, currentTitle, currentType) => {
+  const handleOpenEditQuestion = (qId, currentTitle, currentType, parentQId = '', parentOptVal = '') => {
     setEditQuestionModal({
       questionId: qId,
       title: currentTitle,
-      type: currentType
+      type: currentType,
+      parentQuestionId: parentQId || '',
+      parentOptionValue: parentOptVal || ''
     });
   };
 
@@ -122,7 +124,9 @@ export default function PricingTab({
         activeService,
         editQuestionModal.questionId,
         editQuestionModal.title,
-        editQuestionModal.type
+        editQuestionModal.type,
+        editQuestionModal.parentQuestionId || null,
+        editQuestionModal.parentOptionValue || null
       );
     }
     setEditQuestionModal(null);
@@ -137,6 +141,9 @@ export default function PricingTab({
     handleBulkUpdatePrices(updatedList);
   };
 
+  const [newParentQuestionId, setNewParentQuestionId] = useState('');
+  const [newParentOptionValue, setNewParentOptionValue] = useState('');
+
   const openAddModalForService = (presetQuestionId = '') => {
     if (presetQuestionId && currentServiceQuestions.some(q => q.id === presetQuestionId)) {
       setAddMode('existing');
@@ -150,6 +157,8 @@ export default function PricingTab({
     }
     setNewQuestionTitle('');
     setNewQuestionType('radio');
+    setNewParentQuestionId('');
+    setNewParentOptionValue('');
     setOptionRows([{ option_value: '', price: 0 }]);
     setShowAddModal(true);
   };
@@ -200,7 +209,9 @@ export default function PricingTab({
         question_type,
         option_value: row.option_value.trim(),
         label,
-        price: parseInt(row.price) || 0
+        price: parseInt(row.price) || 0,
+        parent_question_id: newParentQuestionId || null,
+        parent_option_value: newParentOptionValue || null,
       });
     }
 
@@ -277,6 +288,112 @@ export default function PricingTab({
           <strong>İpucu:</strong> Bir soruya istediğiniz kadar farklı cevap/seçenek ekleyebilirsiniz. Sorularınızı <strong>Açılır Liste (Dropdown)</strong> veya <strong>Radyo Buton</strong> olarak tanımlayabilirsiniz. Müşteri formunda anında geçerli olur.
         </div>
       </div>
+
+      {/* Edit Question Modal */}
+      {editQuestionModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-2xl max-w-lg w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
+            <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-800 pb-3">
+              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
+                <Edit2 className="w-4 h-4 text-blue-500" />
+                Soruyu Düzenle & Koşul Belirle
+              </h3>
+              <button onClick={() => setEditQuestionModal(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-gray-200">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleConfirmQuestionEdit} className="space-y-4">
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase mb-1">
+                  Soru Başlığı
+                </label>
+                <input
+                  type="text"
+                  value={editQuestionModal.title}
+                  onChange={(e) => setEditQuestionModal(prev => ({ ...prev, title: e.target.value }))}
+                  required
+                  className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase mb-1">
+                  Cevap Formatı / Türü
+                </label>
+                <select
+                  value={editQuestionModal.type}
+                  onChange={(e) => setEditQuestionModal(prev => ({ ...prev, type: e.target.value }))}
+                  className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
+                >
+                  <option value="radio">Radyo Butonlar (Tekli Seçim)</option>
+                  <option value="select">Açılır Menü / Dropdown (Tekli Seçim)</option>
+                </select>
+              </div>
+
+              {/* Koşullu Mantık Bölümü */}
+              <div className="p-4 rounded-xl bg-amber-50/60 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-500/20 space-y-3">
+                <div className="flex items-center gap-1.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                  <GitBranch className="w-4 h-4" />
+                  <span>🔀 Koşullu Gösterim Mantığı (İsteğe Bağlı)</span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-gray-400">
+                  Bu sorunun sadece müşterinin <strong>önceki bir soruda seçtiği belirli bir cevaba göre</strong> görünmesini isterseniz aşağıdan kural tanımlayın.
+                </p>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-[11px] font-semibold text-slate-600 dark:text-gray-400 mb-1">Bağlı Olduğu Soru</label>
+                    <select
+                      value={editQuestionModal.parentQuestionId || ''}
+                      onChange={(e) => setEditQuestionModal(prev => ({ ...prev, parentQuestionId: e.target.value, parentOptionValue: '' }))}
+                      className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                    >
+                      <option value="">-- Her Zaman Göster (Bağımsız) --</option>
+                      {currentServiceQuestions.filter(q => q.id !== editQuestionModal.questionId).map(pq => (
+                        <option key={pq.id} value={pq.id}>{pq.title}</option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {editQuestionModal.parentQuestionId && (
+                    <div>
+                      <label className="block text-[11px] font-semibold text-slate-600 dark:text-gray-400 mb-1">Hangi Cevap Seçilirse Gönsünsün?</label>
+                      <select
+                        value={editQuestionModal.parentOptionValue || ''}
+                        onChange={(e) => setEditQuestionModal(prev => ({ ...prev, parentOptionValue: e.target.value }))}
+                        className="w-full bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-2 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-amber-500"
+                      >
+                        <option value="">-- Tüm Cevaplarda Göster --</option>
+                        {groupedPrices[editQuestionModal.parentQuestionId]?.map(opt => (
+                          <option key={opt.id} value={opt.option_value}>{opt.option_value}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-gray-800">
+                <button
+                  type="button"
+                  onClick={() => setEditQuestionModal(null)}
+                  className="px-4 py-2.5 rounded-xl bg-slate-100 dark:bg-gray-900 text-slate-700 dark:text-gray-300 text-xs font-semibold hover:bg-slate-200"
+                >
+                  İptal
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  Değişiklikleri Kaydet
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add New Question/Option Modal */}
       {showAddModal && (
@@ -556,15 +673,22 @@ export default function PricingTab({
                     <span className="text-[10px] px-2 py-0.5 rounded-full bg-blue-50 dark:bg-blue-950/40 text-blue-600 dark:text-blue-400 font-semibold border border-blue-200 dark:border-blue-500/20">
                       {qType === 'select' ? 'Açılır Liste' : 'Radyo'}
                     </span>
+
+                    {items[0]?.parent_question_id && (
+                      <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/40 text-amber-600 dark:text-amber-400 font-semibold border border-amber-200 dark:border-amber-500/20 flex items-center gap-1" title={`Sadece "${items[0].parent_option_value}" seçildiğinde gösterilir`}>
+                        <GitBranch className="w-3 h-3" />
+                        {items[0]?.parent_option_value ? `Koşul: ${items[0].parent_option_value}` : 'Koşullu'}
+                      </span>
+                    )}
                   </div>
 
                   <div className="flex items-center gap-1">
                     {/* Soruyu Düzenle */}
                     <button
                       type="button"
-                      onClick={() => handleOpenEditQuestion(questionId, questionTitle, qType)}
+                      onClick={() => handleOpenEditQuestion(questionId, questionTitle, qType, items[0]?.parent_question_id, items[0]?.parent_option_value)}
                       className="p-1.5 text-slate-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-950/30 rounded-lg transition"
-                      title="Soruyu Düzenle (Başlık / Tip)"
+                      title="Soruyu Düzenle & Koşul Belirle"
                     >
                       <Edit2 className="w-3.5 h-3.5" />
                     </button>

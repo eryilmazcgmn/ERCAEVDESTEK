@@ -281,10 +281,10 @@ export const api = {
   },
 
   // Admin Endpoint: Update question title and type
-  updateServiceQuestion: async (service_type, question_id, question_title, question_type, token) => {
+  updateServiceQuestion: async (service_type, question_id, question_title, question_type, parent_question_id, parent_option_value, token) => {
     const res = await apiClient.post(
       '/admin/service-prices/update-question',
-      { service_type, question_id, question_title, question_type },
+      { service_type, question_id, question_title, question_type, parent_question_id, parent_option_value },
       getAuthHeader(token)
     );
     return res;

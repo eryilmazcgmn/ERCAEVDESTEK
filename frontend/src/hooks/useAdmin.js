@@ -264,10 +264,10 @@ export function useAdmin() {
     }
   }, [adminToken, fetchCrmPrices]);
 
-  const handleUpdateServiceQuestion = useCallback(async (serviceType, questionId, questionTitle, questionType) => {
+  const handleUpdateServiceQuestion = useCallback(async (serviceType, questionId, questionTitle, questionType, parentQuestionId = null, parentOptionValue = null) => {
     setLoadingCrmData(true);
     try {
-      const data = await api.updateServiceQuestion(serviceType, questionId, questionTitle, questionType, adminToken);
+      const data = await api.updateServiceQuestion(serviceType, questionId, questionTitle, questionType, parentQuestionId, parentOptionValue, adminToken);
       if (data.status || data.success) {
         toast.success('Soru düzenlendi.');
         fetchCrmPrices();

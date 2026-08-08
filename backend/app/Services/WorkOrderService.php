@@ -283,9 +283,9 @@ class WorkOrderService
         });
     }
 
-    public function updateQuestionTitleAndType(string $serviceType, string $questionId, string $newTitle, string $questionType): bool
+    public function updateQuestionTitleAndType(string $serviceType, string $questionId, string $newTitle, string $questionType, ?string $parentQuestionId = null, ?string $parentOptionValue = null): bool
     {
-        return DB::transaction(function () use ($serviceType, $questionId, $newTitle, $questionType) {
+        return DB::transaction(function () use ($serviceType, $questionId, $newTitle, $questionType, $parentQuestionId, $parentOptionValue) {
             $items = ServicePrice::where('service_type', $serviceType)
                 ->where('question_id', $questionId)
                 ->get();
@@ -298,6 +298,8 @@ class WorkOrderService
                 $item->update([
                     'label' => $newLabel,
                     'question_type' => $questionType,
+                    'parent_question_id' => $parentQuestionId,
+                    'parent_option_value' => $parentOptionValue,
                 ]);
             }
 
@@ -333,9 +335,16 @@ class WorkOrderService
 
         // If question_type is specified, update all existing items under this question_id as well
         if (!empty($data['question_id']) && !empty($data['service_type'])) {
+            $updateData = ['question_type' => $qType];
+            if (array_key_exists('parent_question_id', $data)) {
+                $updateData['parent_question_id'] = $data['parent_question_id'];
+            }
+            if (array_key_exists('parent_option_value', $data)) {
+                $updateData['parent_option_value'] = $data['parent_option_value'];
+            }
             ServicePrice::where('service_type', $data['service_type'])
                 ->where('question_id', $data['question_id'])
-                ->update(['question_type' => $qType]);
+                ->update($updateData);
         }
 
         $sp = ServicePrice::create([
@@ -345,6 +354,8 @@ class WorkOrderService
             'option_value' => $data['option_value'],
             'label' => $data['label'],
             'price' => (int) ($data['price'] ?? 0),
+            'parent_question_id' => $data['parent_question_id'] ?? null,
+            'parent_option_value' => $data['parent_option_value'] ?? null,
         ]);
 
         Cache::forget('service_prices');

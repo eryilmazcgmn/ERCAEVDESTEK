@@ -466,6 +466,8 @@ class AdminController extends Controller
                 'option_value' => 'required|string|max:100',
                 'label' => 'required|string|max:255',
                 'price' => 'nullable|integer|min:0',
+                'parent_question_id' => 'nullable|string|max:100',
+                'parent_option_value' => 'nullable|string|max:100',
             ]);
 
             $sp = $this->workOrderService->createServicePrice($validated);
@@ -556,13 +558,17 @@ class AdminController extends Controller
                 'question_id' => 'required|string|max:100',
                 'question_title' => 'required|string|max:255',
                 'question_type' => 'required|string|in:radio,select,number,text',
+                'parent_question_id' => 'nullable|string|max:100',
+                'parent_option_value' => 'nullable|string|max:100',
             ]);
 
             $this->workOrderService->updateQuestionTitleAndType(
                 $validated['service_type'],
                 $validated['question_id'],
                 $validated['question_title'],
-                $validated['question_type']
+                $validated['question_type'],
+                $validated['parent_question_id'] ?? null,
+                $validated['parent_option_value'] ?? null
             );
 
             return response()->json([
