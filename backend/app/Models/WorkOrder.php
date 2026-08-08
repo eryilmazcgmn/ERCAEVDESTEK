@@ -19,10 +19,17 @@ class WorkOrder extends Model
         'completion_photo',
         'customer_address',
         'customer_phone',
+        'photos',
+        'preferred_date',
+        'time_slot',
+        'coupon_code',
+        'discount_amount',
     ];
 
     protected $casts = [
         'scheduled_at' => 'datetime',
+        'photos' => 'array',
+        'preferred_date' => 'date',
     ];
 
     public function customer(): BelongsTo

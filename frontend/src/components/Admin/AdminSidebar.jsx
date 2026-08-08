@@ -7,7 +7,8 @@ import {
   Settings,
   Eye,
   HardHat,
-  Layers
+  Layers,
+  Tag
 } from 'lucide-react';
 
 export default function AdminSidebar({
@@ -58,13 +59,14 @@ export default function AdminSidebar({
       <nav className="flex flex-row md:flex-col p-2 md:p-4 space-x-2 md:space-x-0 md:space-y-1 overflow-x-auto md:overflow-visible shrink-0 md:shrink scrollbar-none">
         {[
           { id: 'dashboard', name: 'Dashboard', icon: LayoutDashboard },
+          { id: 'services', name: 'Hizmetler', icon: Layers },
+          { id: 'pricing', name: 'Fiyatlandırma & Soru', icon: DollarSign },
+          { id: 'coupons', name: 'Kuponlar', icon: Tag },
+          { id: 'work-orders', name: 'İş Emirleri & Usta', icon: Briefcase },
+          { id: 'quotations', name: 'Teklifler', icon: DollarSign },
           { id: 'customers', name: 'Müşteriler', icon: Users },
           { id: 'technicians', name: 'Ustalar', icon: HardHat },
-          { id: 'quotations', name: 'Teklifler', icon: DollarSign },
-          { id: 'work-orders', name: 'İş Emirleri', icon: Briefcase },
-          { id: 'services', name: 'Hizmetler', icon: Layers },
-          { id: 'pricing', name: 'Fiyat Yönetimi', icon: DollarSign },
-          { id: 'settings', name: 'Genel Ayarlar', icon: Settings }
+          { id: 'settings', name: 'Genel Ayarlar', icon: Settings },
         ].map(tab => {
           const IconComp = tab.icon;
           return (

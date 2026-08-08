@@ -13,6 +13,8 @@ import LoginPage from './pages/LoginPage';
 import AdminPage from './pages/AdminPage';
 import TechnicianPage from './pages/TechnicianPage';
 import TrackingPage from './pages/TrackingPage';
+import OrderTrackingPage from './pages/OrderTrackingPage';
+import TechnicianPortalPage from './pages/TechnicianPortalPage';
 
 // Components
 import ErrorBoundary from './components/ErrorBoundary';
@@ -53,6 +55,9 @@ function AppRoutes() {
       {/* Tracking Pages */}
       <Route path="/tracking" element={<TrackingPage />} />
       <Route path="/tracking/:sessionId" element={<TrackingPage />} />
+      <Route path="/takip" element={<OrderTrackingPage />} />
+      <Route path="/takip/:code" element={<OrderTrackingPage />} />
+      <Route path="/usta" element={<TechnicianPortalPage />} />
 
       {/* Admin CRM Panel */}
       <Route

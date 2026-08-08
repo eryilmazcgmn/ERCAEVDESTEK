@@ -304,4 +304,44 @@ class QuotationService
             'active_work_order' => $activeWorkOrder
         ];
     }
+
+    /**
+     * Get tracking info by WorkOrder ID or Code.
+     */
+    public function getTrackingInfoByCode(string $code): array
+    {
+        $cleanCode = strtoupper(trim($code));
+        $numericId = (int) preg_replace('/[^0-9]/', '', $cleanCode);
+
+        $workOrder = null;
+        if ($numericId > 0) {
+            $workOrder = WorkOrder::where('id', $numericId)
+                ->orWhere('quotation_id', $numericId)
+                ->with(['customer', 'quotation', 'technician'])
+                ->first();
+        }
+
+        if (!$workOrder && str_contains($cleanCode, 'SES')) {
+            $sessionId = strtolower($cleanCode);
+            $conversation = Conversation::where('session_id', 'LIKE', "%{$sessionId}%")->first();
+            if ($conversation) {
+                return $this->getTrackingInfo($conversation->session_id);
+            }
+        }
+
+        if ($workOrder) {
+            $quotation = $workOrder->quotation;
+            $customer = $workOrder->customer;
+
+            return [
+                'session_id' => $quotation->conversation_id ?? "WO-{$workOrder->id}",
+                'customer' => $customer,
+                'quotations' => $quotation ? [$quotation] : [],
+                'work_orders' => [$workOrder],
+                'active_work_order' => $workOrder
+            ];
+        }
+
+        throw new Exception("Sipariş veya iş emri bulunamadı.");
+    }
 }

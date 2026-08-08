@@ -163,4 +163,29 @@ class QuotationController extends Controller
             ], 404);
         }
     }
+
+    /**
+     * Get live tracking info by order code (WO-XXXX or ID).
+     */
+    public function trackingByCode(string $code): JsonResponse
+    {
+        try {
+            $data = $this->quotationService->getTrackingInfoByCode($code);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Sipariş detayları getirildi.',
+                'data' => $data,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Failed to get tracking info by code', ['exception' => $e, 'code' => $code]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Belirtilen koda ait sipariş bulunamadı.',
+                'data' => null,
+                'errors' => ['tracking' => ['Sipariş bulunamadı.']]
+            ], 404);
+        }
+    }
 }

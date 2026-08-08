@@ -17,8 +17,9 @@ import PricingTab from '../components/Admin/PricingTab';
 import TechniciansTab from '../components/Admin/TechniciansTab';
 import SettingsTab from '../components/Admin/SettingsTab';
 import ServicesTab from '../components/Admin/ServicesTab';
+import CouponsTab from '../components/Admin/CouponsTab';
 
-const VALID_TABS = ['dashboard', 'customers', 'quotations', 'work-orders', 'pricing', 'technicians', 'services', 'settings'];
+const VALID_TABS = ['dashboard', 'customers', 'quotations', 'work-orders', 'pricing', 'coupons', 'technicians', 'services', 'settings'];
 
 export default function AdminPage({ admin }) {
   const { theme, toggleTheme } = useTheme();
@@ -153,6 +154,10 @@ export default function AdminPage({ admin }) {
                   loadingCrmData={admin.loadingCrmData}
                   fetchCrmPrices={admin.fetchCrmPrices}
                 />
+              )}
+
+              {activeTab === 'coupons' && (
+                <CouponsTab adminToken={admin.adminToken} />
               )}
 
               {activeTab === 'technicians' && (

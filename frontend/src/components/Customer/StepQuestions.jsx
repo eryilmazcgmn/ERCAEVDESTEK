@@ -33,6 +33,8 @@ export default function StepQuestions({
                 id: qId,
                 label: item.label.split(':')[0]?.trim() || qId,
                 type: item.question_type || 'radio',
+                parentQuestionId: item.parent_question_id || null,
+                parentOptionValue: item.parent_option_value || null,
                 options: [],
                 pricing: {}
               };
@@ -65,7 +67,13 @@ export default function StepQuestions({
   }, [dbQuestions, selectedService]);
 
   const dynamicQuestions = useMemo(() => {
-    return allQuestions.filter(q => !q.condition || q.condition(formAnswers));
+    return allQuestions.filter(q => {
+      if (q.condition) return q.condition(formAnswers);
+      if (q.parentQuestionId && q.parentOptionValue) {
+        return formAnswers[q.parentQuestionId] === q.parentOptionValue;
+      }
+      return true;
+    });
   }, [allQuestions, formAnswers]);
 
   // Live price estimate calculation
@@ -207,6 +215,50 @@ export default function StepQuestions({
                 <strong>{loading ? 'Sorular yükleniyor...' : 'Bu hizmet için henüz detay sorusu eklenmemiş.'}</strong>
                 {!loading && ' Devam etmek için "İletişim Bilgilerine Geç" butonuna tıklayabilirsiniz.'}
               </div>
+            </div>
+          )}
+        </div>
+
+        {/* Photo Attachment Card */}
+        <div className="mt-6 max-w-xl p-4 md:p-5 rounded-2xl bg-blue-50/50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-500/20 space-y-3">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-bold text-slate-800 dark:text-gray-200 flex items-center gap-2">
+              <span>📸 Çalışma Alanı / Arıza Fotoğrafı Ekle</span>
+              <span className="text-[10px] font-semibold text-blue-600 dark:text-blue-400 bg-blue-100 dark:bg-blue-900/40 px-2 py-0.5 rounded-full">İsteğe Bağlı</span>
+            </label>
+            <span className="text-[10px] text-slate-500 dark:text-gray-400">En fazla 3 fotoğraf</span>
+          </div>
+          <p className="text-[11px] text-slate-500 dark:text-gray-400">
+            Avizenizi, montaj yapılacak duvarı veya arızalı priz/tesisat alanını çekip yüklerseniz ustamız ön hazırlık yapabilir.
+          </p>
+
+          <input 
+            type="file" 
+            accept="image/*"
+            multiple
+            onChange={(e) => {
+              const files = Array.from(e.target.files).slice(0, 3);
+              const filePromises = files.map(file => {
+                return new Promise((resolve) => {
+                  const reader = new FileReader();
+                  reader.onload = (evt) => resolve(evt.target.result);
+                  reader.readAsDataURL(file);
+                });
+              });
+              Promise.all(filePromises).then(base64Photos => {
+                handleInputChange('uploadedPhotos', base64Photos);
+              });
+            }}
+            className="w-full text-xs text-slate-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-xs file:font-semibold file:bg-blue-600 file:text-white hover:file:bg-blue-500 cursor-pointer"
+          />
+
+          {formAnswers.uploadedPhotos && formAnswers.uploadedPhotos.length > 0 && (
+            <div className="flex gap-2 pt-2">
+              {formAnswers.uploadedPhotos.map((src, idx) => (
+                <div key={idx} className="w-16 h-16 rounded-xl border overflow-hidden bg-white shrink-0 shadow-sm relative">
+                  <img src={src} alt="Yüklenen Görsel" className="w-full h-full object-cover" />
+                </div>
+              ))}
             </div>
           )}
         </div>

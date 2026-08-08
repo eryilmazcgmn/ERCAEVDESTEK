@@ -16,11 +16,18 @@ class Quotation extends Model
         'price_details',
         'pdf_path',
         'status',
+        'photos',
+        'preferred_date',
+        'time_slot',
+        'coupon_code',
+        'discount_amount',
     ];
 
     protected $casts = [
         'details' => 'array',
         'price_details' => 'array',
+        'photos' => 'array',
+        'preferred_date' => 'date',
     ];
 
     public function customer(): BelongsTo

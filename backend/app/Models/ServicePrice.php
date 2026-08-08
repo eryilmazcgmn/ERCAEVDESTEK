@@ -14,5 +14,7 @@ class ServicePrice extends Model
         'label',
         'price',
         'sort_order',
+        'parent_question_id',
+        'parent_option_value',
     ];
 }

@@ -26,7 +26,9 @@ Route::middleware(['throttle:30,1'])->group(function () {
     Route::get('/services', [ServiceController::class, 'index']);
     Route::get('/service-prices', [AdminController::class, 'getServicePrices']);
     Route::get('/tracking/{session_id}', [QuotationController::class, 'trackingInfo']);
+    Route::get('/tracking-code/{code}', [QuotationController::class, 'trackingByCode']);
     Route::get('/tracking-by-phone/{phone}', [QuotationController::class, 'trackingByPhone']);
+    Route::post('/coupons/validate', [\App\Http\Controllers\CouponController::class, 'validateCoupon']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
 });
 
@@ -106,6 +108,11 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     Route::post('/services', [AdminController::class, 'createService']);
     Route::put('/services/{id}', [AdminController::class, 'updateService']);
     Route::delete('/services/{id}', [AdminController::class, 'deleteService']);
+
+    // Coupons management
+    Route::get('/coupons', [\App\Http\Controllers\CouponController::class, 'index']);
+    Route::post('/coupons', [\App\Http\Controllers\CouponController::class, 'store']);
+    Route::delete('/coupons/{id}', [\App\Http\Controllers\CouponController::class, 'destroy']);
 
     // Hosting utility routes — protected by ADMIN_OPERATION_SECRET
     Route::get('/link-storage', function (SettingService $settingService, Request $request) {

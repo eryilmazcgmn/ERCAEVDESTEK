@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { User, Phone, Mail, ChevronRight, ChevronLeft, ChevronDown, Lock, MapPin, Camera, UploadCloud, Trash2, Image, AlertCircle, Building, Home } from 'lucide-react';
+import { User, Phone, Mail, ChevronRight, ChevronLeft, ChevronDown, Lock, MapPin, Camera, UploadCloud, Trash2, Image, AlertCircle, Building, Home, Calendar } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import { contactSchema } from '../../utils/schemas';
 
@@ -72,6 +72,12 @@ export default function StepContact({
   const [selectedNeighborhood, setSelectedNeighborhood] = useState('Bahçelievler');
   const [showPhotoSection, setShowPhotoSection] = useState(false);
 
+  const [preferredDate, setPreferredDate] = useState(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+  const [selectedSlot, setSelectedSlot] = useState('09:00 - 12:00 (Sabah)');
+
   const cleanInitialAddress = cleanRawAddress(customerAddress);
 
   const {
@@ -110,7 +116,9 @@ export default function StepContact({
       name: data.name,
       phone: data.phone,
       email: data.email || '',
-      address: fullAddress
+      address: fullAddress,
+      preferred_date: preferredDate,
+      time_slot: selectedSlot
     });
   };
 
@@ -285,6 +293,47 @@ export default function StepContact({
                 ) : (
                   <p className="text-[11px] text-slate-400 dark:text-gray-500">Ustanın adrese ulaşabilmesi için sokak ve bina nosunu giriniz.</p>
                 )}
+              </div>
+            </div>
+
+            {/* Section 3: Tercih Edilen Servis Zamanı */}
+            <div className="space-y-4 bg-white dark:bg-gray-950 p-5 rounded-2xl border border-slate-200 dark:border-gray-800 shadow-sm">
+              <h3 className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-gray-800">
+                <Calendar className="w-3.5 h-3.5 text-blue-500" />
+                Tercih Edilen Servis Zamanı (Randevu)
+              </h3>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-gray-300 block">Servis Günü</label>
+                  <input
+                    type="date"
+                    value={preferredDate}
+                    min={new Date().toISOString().split('T')[0]}
+                    onChange={(e) => setPreferredDate(e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl py-3 px-4 text-sm focus:outline-none focus:border-blue-500 dark:text-white transition"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-700 dark:text-gray-300 block">Saat Dilimi</label>
+                  <div className="grid grid-cols-1 gap-2">
+                    {['09:00 - 12:00 (Sabah)', '12:00 - 15:00 (Öğle)', '15:00 - 18:00 (Akşamüstü)', '18:00 - 21:00 (Mesai Sonrası)'].map(slot => (
+                      <button
+                        key={slot}
+                        type="button"
+                        onClick={() => setSelectedSlot(slot)}
+                        className={`p-2.5 rounded-xl text-xs font-semibold text-left border transition ${
+                          selectedSlot === slot
+                            ? 'bg-blue-50 dark:bg-blue-950/40 border-blue-500 text-blue-600 dark:text-blue-400 font-bold shadow-sm'
+                            : 'bg-slate-50 dark:bg-gray-900 border-slate-200 dark:border-gray-800 text-slate-600 dark:text-gray-400 hover:border-slate-300'
+                        }`}
+                      >
+                        {slot}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
 

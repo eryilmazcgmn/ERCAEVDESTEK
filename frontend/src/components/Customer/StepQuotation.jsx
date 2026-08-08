@@ -93,8 +93,32 @@ export default function StepQuotation({
     }
   };
 
-  const totalAmount = compiledQuotation?.price_details?.total || 0;
-  const depositAmount = compiledQuotation?.price_details?.deposit_amount || (parseFloat(totalAmount) * 0.20).toFixed(2);
+  const [couponInput, setCouponInput] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
+
+  const initialTotal = compiledQuotation?.price_details?.total || 0;
+  const discountVal = appliedCoupon?.discount_amount || 0;
+  const totalAmount = appliedCoupon?.new_total !== undefined ? appliedCoupon.new_total : initialTotal;
+  const depositAmount = appliedCoupon?.new_deposit !== undefined ? appliedCoupon.new_deposit : (parseFloat(totalAmount) * 0.20).toFixed(2);
+
+  const handleApplyCoupon = async (e) => {
+    if (e && e.preventDefault) e.preventDefault();
+    if (!couponInput.trim()) return;
+    setValidatingCoupon(true);
+    try {
+      const res = await api.validateCoupon(couponInput.trim(), initialTotal);
+      const data = res.data?.data || res.data;
+      if (data && data.discount_amount !== undefined) {
+        setAppliedCoupon(data);
+        toast.success(`Kupon uygulandı! ₺${data.discount_amount} indirim kazandınız.`);
+      }
+    } catch (err) {
+      toast.error(err.response?.data?.message || 'Geçersiz indirim kodu.');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
   const workOrderId = compiledWorkOrder?.id || compiledWorkOrder?.work_order_id;
   const workOrderCode = workOrderId ? `WO-${workOrderId}` : (sessionId ? `SES-${sessionId.slice(-6)}` : 'WO-1001');
   const isApproved = !!compiledWorkOrder;
@@ -227,16 +251,49 @@ export default function StepQuotation({
                   <span className="font-semibold text-slate-900 dark:text-white">{item.price} TL</span>
                 </div>
               ))}
-              <div className="pt-2 space-y-1 text-xs">
+              <div className="pt-2 space-y-1.5 text-xs border-t border-slate-200 dark:border-gray-800">
                 <div className="flex justify-between text-slate-500 dark:text-gray-400">
-                  <span>Toplam Hizmet Bedeli:</span>
-                  <span className="font-bold text-slate-900 dark:text-white">{totalAmount} TL</span>
+                  <span>Hizmet Tutarı:</span>
+                  <span className="font-semibold text-slate-900 dark:text-white">{initialTotal} TL</span>
                 </div>
+
+                {appliedCoupon && (
+                  <div className="flex justify-between text-emerald-600 dark:text-emerald-400 font-semibold">
+                    <span>İndirim Kuponu ({appliedCoupon.code}):</span>
+                    <span>-₺{discountVal} TL</span>
+                  </div>
+                )}
+
+                <div className="flex justify-between text-slate-900 dark:text-white font-bold text-sm">
+                  <span>Toplam Bedel:</span>
+                  <span>{totalAmount} TL</span>
+                </div>
+
                 <div className="flex justify-between text-primary-500 font-bold text-sm pt-1 border-t border-slate-200 dark:border-gray-800">
                   <span>Kapora (%20):</span>
                   <span className="text-green-500">{depositAmount} TL</span>
                 </div>
               </div>
+
+              {/* İndirim Kodu Giriş Alanı */}
+              {!appliedCoupon && (
+                <form onSubmit={handleApplyCoupon} className="pt-2 flex items-center gap-2">
+                  <input
+                    type="text"
+                    value={couponInput}
+                    onChange={(e) => setCouponInput(e.target.value.toUpperCase())}
+                    placeholder="İndirim Kodu Girin (Örn: HOSGELDIN50)"
+                    className="flex-1 bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-xl px-3 py-2 text-xs font-mono uppercase focus:outline-none focus:border-primary-500"
+                  />
+                  <button
+                    type="submit"
+                    disabled={validatingCoupon || !couponInput.trim()}
+                    className="px-3 py-2 rounded-xl bg-slate-900 dark:bg-slate-800 hover:bg-slate-800 text-white text-xs font-bold transition disabled:opacity-50"
+                  >
+                    {validatingCoupon ? '...' : 'Uygula'}
+                  </button>
+                </form>
+              )}
             </div>
 
             {/* PDF Rapor İndirme */}
