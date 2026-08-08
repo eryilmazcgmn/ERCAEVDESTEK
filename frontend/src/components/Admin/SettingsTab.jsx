@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import { Save, Image as ImageIcon, PaintBucket, Type, Code2, AlertCircle } from 'lucide-react';
+import { Save, Image as ImageIcon, PaintBucket, Type, Code2, AlertCircle, CreditCard } from 'lucide-react';
 import { useSettings } from '../../context/SettingsContext';
 import { api } from '../../services/api';
 
@@ -142,6 +142,62 @@ const SettingsTab = ({ adminToken }) => {
                                 onChange={handleChange}
                                 placeholder="905551234567"
                                 className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-primary-500 dark:text-white transition"
+                            />
+                        </div>
+                    </div>
+                </div>
+
+                {/* Havale / EFT Banka Bilgileri */}
+                <div className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-2xl p-6 shadow-sm">
+                    <div className="flex items-center gap-2 mb-6">
+                        <CreditCard className="w-5 h-5 text-emerald-500" />
+                        <h3 className="font-bold text-lg text-slate-800 dark:text-white">Banka & Havale Bilgileri</h3>
+                    </div>
+                    
+                    <div className="space-y-4">
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase mb-1.5">Banka Adı</label>
+                            <input 
+                                type="text" 
+                                name="bank_name"
+                                value={formData.bank_name || ''}
+                                onChange={handleChange}
+                                placeholder="Örn: Ziraat Bankası"
+                                className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 dark:text-white transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase mb-1.5">Hesap Sahibi / Alıcı Adı Unvanı</label>
+                            <input 
+                                type="text" 
+                                name="bank_recipient"
+                                value={formData.bank_recipient || ''}
+                                onChange={handleChange}
+                                placeholder="Örn: ERCA Ev Destek Ltd. Şti."
+                                className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 dark:text-white transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase mb-1.5">IBAN Numarası</label>
+                            <input 
+                                type="text" 
+                                name="bank_iban"
+                                value={formData.bank_iban || ''}
+                                onChange={handleChange}
+                                placeholder="TR00 0000 0000 0000 0000 0000 00"
+                                className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 dark:text-white transition"
+                            />
+                        </div>
+                        <div>
+                            <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase mb-1.5">Varsayılan Kapora Tutarı (TL)</label>
+                            <input 
+                                type="number" 
+                                min="0"
+                                name="deposit_amount"
+                                value={formData.deposit_amount || ''}
+                                onChange={handleChange}
+                                placeholder="500"
+                                className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 dark:text-white transition"
                             />
                         </div>
                     </div>

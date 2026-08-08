@@ -26,24 +26,24 @@ export default function StepQuotation({
   const [copied, setCopied] = useState(false);
   const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [bankInfo, setBankInfo] = useState({
-    bankName: "Garanti BBVA",
-    accountName: "ERCA Ev Destek Hizmetleri A.Ş.",
-    iban: "TR12 0006 2000 0001 2345 6789 01",
+    bankName: "Ziraat Bankası",
+    accountName: "ERCA Ev Destek Ltd. Şti.",
+    iban: "TR00 0000 0000 0000 0000 0000 00",
     whatsapp_number: "905551234567"
   });
 
   useEffect(() => {
     const loadBankInfo = async () => {
       try {
-        const data = await api.fetchBankInfo();
-        const bankData = data.data || data;
-        const bank = bankData.bank || bankData;
-        if (bank && bank.bankName) {
+        const res = await api.fetchBankInfo();
+        const data = res?.data || res;
+        const bank = data?.bank || {};
+        if (bank) {
           setBankInfo({
-            bankName: bank.bankName || bankInfo.bankName,
-            accountName: bank.accountName || bankInfo.accountName,
-            iban: bank.iban || bankInfo.iban,
-            whatsapp_number: bankData.whatsapp_number || bank.whatsapp_number || '905551234567'
+            bankName: bank.bankName || "Ziraat Bankası",
+            accountName: bank.accountName || "ERCA Ev Destek Ltd. Şti.",
+            iban: bank.iban || "TR00 0000 0000 0000 0000 0000 00",
+            whatsapp_number: data.whatsapp_number || "905551234567"
           });
         }
       } catch (err) {
