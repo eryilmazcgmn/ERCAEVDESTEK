@@ -150,22 +150,37 @@ export default function PricingTab({
     setEditQuestionModal(null);
   };
 
-  const onDeleteQuestion = async (questionId, questionTitle = null, itemIds = []) => {
+  const onDeleteQuestion = async (qId, qTitle, qItemIds) => {
     if (!window.confirm('Bu soruyu ve tüm seçeneklerini silmek istediğinizden emin misiniz?')) return;
-    const safeIds = Array.isArray(itemIds) ? itemIds : [];
-    setLocalPrices(prev => prev.filter(p => p.question_id !== questionId && (!safeIds.length || !safeIds.includes(p.id))));
+    const titleStr = (typeof qTitle === 'string') ? qTitle : null;
+    const idsArr = Array.isArray(qItemIds) ? qItemIds : [];
+    const deleteQuestionId = String(qId);
+    // Optimistic UI removal
+    setLocalPrices(function(currentPrices) {
+      return currentPrices.filter(function(price) {
+        if (price.question_id === deleteQuestionId) return false;
+        if (idsArr.length > 0 && idsArr.includes(price.id)) return false;
+        return true;
+      });
+    });
+    // Call backend
     if (handleDeleteServiceQuestion) {
-      const ok = await handleDeleteServiceQuestion(activeService, questionId, questionTitle, safeIds);
-      if (!ok && fetchCrmPrices) {
+      const deleteResult = await handleDeleteServiceQuestion(activeService, deleteQuestionId, titleStr, idsArr);
+      if (!deleteResult && fetchCrmPrices) {
         fetchCrmPrices();
       }
     }
   };
 
-  const onDeleteOption = async (optionId) => {
-    setLocalPrices(prev => prev.filter(p => p.id !== optionId));
+  const onDeleteOption = async (deleteOptId) => {
+    const safeOptId = deleteOptId;
+    setLocalPrices(function(currentPrices) {
+      return currentPrices.filter(function(price) {
+        return price.id !== safeOptId;
+      });
+    });
     if (handleDeleteServicePrice) {
-      await handleDeleteServicePrice(optionId);
+      await handleDeleteServicePrice(safeOptId);
     }
   };
 
