@@ -462,6 +462,7 @@ class AdminController extends Controller
             $validated = $request->validate([
                 'service_type' => 'required|string|max:100',
                 'question_id' => 'required|string|max:100',
+                'question_type' => 'nullable|string|in:radio,select,number,text',
                 'option_value' => 'required|string|max:100',
                 'label' => 'required|string|max:255',
                 'price' => 'nullable|integer|min:0',

@@ -32,7 +32,7 @@ export default function StepQuestions({
               groups[qId] = {
                 id: qId,
                 label: item.label.split(':')[0]?.trim() || qId,
-                type: 'radio',
+                type: item.question_type || 'radio',
                 options: [],
                 pricing: {}
               };

@@ -9,6 +9,7 @@ class ServicePrice extends Model
     protected $fillable = [
         'service_type',
         'question_id',
+        'question_type',
         'option_value',
         'label',
         'price',

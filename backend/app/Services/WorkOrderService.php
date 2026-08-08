@@ -269,9 +269,19 @@ class WorkOrderService
 
     public function createServicePrice(array $data): ServicePrice
     {
+        $qType = $data['question_type'] ?? 'radio';
+
+        // If question_type is specified, update all existing items under this question_id as well
+        if (!empty($data['question_id']) && !empty($data['service_type'])) {
+            ServicePrice::where('service_type', $data['service_type'])
+                ->where('question_id', $data['question_id'])
+                ->update(['question_type' => $qType]);
+        }
+
         $sp = ServicePrice::create([
             'service_type' => $data['service_type'],
             'question_id' => $data['question_id'],
+            'question_type' => $qType,
             'option_value' => $data['option_value'],
             'label' => $data['label'],
             'price' => (int) ($data['price'] ?? 0),
