@@ -238,17 +238,15 @@ class WorkOrderService
     }
 
     /**
-     * Service prices management — cached for 10 minutes.
+     * Service prices management — real-time DB query (no 10-min cache).
      */
     public function getServicePrices(): array
     {
-        return Cache::remember('service_prices', 600, function () {
-            return ServicePrice::orderBy('service_type')
-                ->orderBy('sort_order', 'asc')
-                ->orderBy('id', 'asc')
-                ->get()
-                ->toArray();
-        });
+        return ServicePrice::orderBy('service_type')
+            ->orderBy('sort_order', 'asc')
+            ->orderBy('id', 'asc')
+            ->get()
+            ->toArray();
     }
 
     public function bulkUpdateServicePrices(array $prices): bool
