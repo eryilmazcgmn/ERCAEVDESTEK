@@ -28,10 +28,22 @@ export default function DashboardTab({
   crmStats,
   crmQuotations = [],
   crmWorkOrders = [],
+  crmServices = [],
   backendUrl,
   setActiveAdminTab,
   handleUpdateWoStatus
 }) {
+  const getServiceName = (slugOrId) => {
+    if (!slugOrId) return 'Genel Hizmet';
+    const found = crmServices.find(s => s.slug === slugOrId || s.id === slugOrId || String(s.id) === String(slugOrId));
+    if (found) return found.name;
+    if (slugOrId === 'tv-mount') return 'TV Montajı';
+    if (slugOrId === 'paint') return 'İç Cephe Boyama';
+    if (slugOrId === 'plumbing') return 'Sıhhi Tesisat';
+    if (slugOrId === 'electric') return 'Elektrik İşleri';
+    if (slugOrId === 'chandelier') return 'Avize Montajı';
+    return slugOrId;
+  };
   // Action Required Orders
   const actionRequiredOrders = crmWorkOrders.filter(wo => 
     wo.status === 'deposit_pending' || 
@@ -61,18 +73,6 @@ export default function DashboardTab({
         amount: total
       }))
     : [];
-
-  const getServiceName = (serviceSlug) => {
-    const match = crmServices?.find(s => s.slug === serviceSlug || s.id == serviceSlug);
-    if (match) return match.name;
-    const labels = {
-      'tv-mount': 'TV Montajı',
-      'paint': 'Boyama',
-      'plumbing': 'Sıhhi Tesisat',
-      'electric': 'Elektrik'
-    };
-    return labels[serviceSlug] || serviceSlug;
-  };
 
   // Format service distribution for PieChart
   const servicePieData = crmStats?.service_distribution
