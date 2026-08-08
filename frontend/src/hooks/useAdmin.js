@@ -170,10 +170,12 @@ export function useAdmin() {
     }
   }, [adminToken, fetchCrmStats]);
 
-  const fetchCrmPrices = useCallback(async (token = adminToken) => {
+  const fetchCrmPrices = useCallback(async (token = null) => {
+    const activeToken = token || adminToken || sessionStorage.getItem('adminToken');
+    if (!activeToken) return;
     setLoadingCrmData(true);
     try {
-      const data = await api.fetchServicePrices(token);
+      const data = await api.fetchServicePrices(activeToken);
       const prices = data.data || data.prices || [];
       setCrmPrices(prices);
     } catch (err) {
@@ -184,12 +186,13 @@ export function useAdmin() {
   }, [adminToken]);
 
   const handleBulkUpdatePrices = useCallback(async (pricesList) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.bulkUpdateServicePrices(pricesList, adminToken);
+      const data = await api.bulkUpdateServicePrices(pricesList, activeToken);
       if (data.status || data.success) {
         toast.success('Fiyatlar başarıyla güncellendi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
       }
     } catch (err) {
       console.error('Error bulk updating service prices:', err);
@@ -200,12 +203,13 @@ export function useAdmin() {
   }, [adminToken, fetchCrmPrices]);
 
   const handleCreateServicePrice = useCallback(async (priceData) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.createServicePrice(priceData, adminToken);
+      const data = await api.createServicePrice(priceData, activeToken);
       if (data.status || data.success) {
         toast.success('Soru ve seçenek başarıyla eklendi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
         return true;
       }
     } catch (err) {
@@ -219,12 +223,13 @@ export function useAdmin() {
 
   const handleDeleteServicePrice = useCallback(async (id) => {
     if (!window.confirm('Bu soru seçeneğini silmek istediğinizden emin misiniz?')) return;
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.deleteServicePrice(id, adminToken);
+      const data = await api.deleteServicePrice(id, activeToken);
       if (data.status || data.success) {
         toast.success('Seçenek silindi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
       }
     } catch (err) {
       console.error(err);
@@ -235,12 +240,13 @@ export function useAdmin() {
   }, [adminToken, fetchCrmPrices]);
 
   const handleReorderServiceQuestions = useCallback(async (serviceType, orderedQuestionIds) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.reorderServiceQuestions(serviceType, orderedQuestionIds, adminToken);
+      const data = await api.reorderServiceQuestions(serviceType, orderedQuestionIds, activeToken);
       if (data.status || data.success) {
         toast.success('Soru sıralaması güncellendi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
       }
     } catch (err) {
       console.error(err);
@@ -251,12 +257,13 @@ export function useAdmin() {
   }, [adminToken, fetchCrmPrices]);
 
   const handleReorderQuestionOptions = useCallback(async (orderedOptionIds) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.reorderQuestionOptions(orderedOptionIds, adminToken);
+      const data = await api.reorderQuestionOptions(orderedOptionIds, activeToken);
       if (data.status || data.success) {
         toast.success('Seçenek sıralaması güncellendi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
       }
     } catch (err) {
       console.error(err);
@@ -267,12 +274,13 @@ export function useAdmin() {
   }, [adminToken, fetchCrmPrices]);
 
   const handleUpdateServiceQuestion = useCallback(async (serviceType, questionId, questionTitle, questionType, parentQuestionId = null, parentOptionValue = null) => {
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.updateServiceQuestion(serviceType, questionId, questionTitle, questionType, parentQuestionId, parentOptionValue, adminToken);
+      const data = await api.updateServiceQuestion(serviceType, questionId, questionTitle, questionType, parentQuestionId, parentOptionValue, activeToken);
       if (data.status || data.success) {
         toast.success('Soru düzenlendi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
       }
     } catch (err) {
       console.error(err);
@@ -284,12 +292,13 @@ export function useAdmin() {
 
   const handleDeleteServiceQuestion = useCallback(async (serviceType, questionId) => {
     if (!window.confirm('Bu soruyu ve bu soruya ait TÜM seçenekleri silmek istediğinizden emin misiniz?')) return;
+    const activeToken = adminToken || sessionStorage.getItem('adminToken');
     setLoadingCrmData(true);
     try {
-      const data = await api.deleteServiceQuestion(serviceType, questionId, adminToken);
+      const data = await api.deleteServiceQuestion(serviceType, questionId, activeToken);
       if (data.status || data.success) {
         toast.success('Soru ve tüm seçenekleri silindi.');
-        fetchCrmPrices();
+        fetchCrmPrices(activeToken);
       }
     } catch (err) {
       console.error(err);

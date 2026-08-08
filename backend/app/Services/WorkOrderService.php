@@ -332,7 +332,6 @@ class WorkOrderService
     {
         $qType = $data['question_type'] ?? 'radio';
 
-        // If question_type is specified, update all existing items under this question_id as well
         if (!empty($data['question_id']) && !empty($data['service_type'])) {
             $updateData = ['question_type' => $qType];
             if (array_key_exists('parent_question_id', $data)) {
