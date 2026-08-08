@@ -307,15 +307,25 @@ class WorkOrderService
 
     public function deleteWholeQuestion(string $serviceType, string $questionId): bool
     {
-        ServicePrice::where('question_id', $questionId)
-            ->orWhere(function ($query) use ($serviceType, $questionId) {
-                $query->where('service_type', $serviceType)->where('question_id', $questionId);
-            })
-            ->delete();
+        return DB::transaction(function () use ($serviceType, $questionId) {
+            $qId = trim($questionId);
+            $sType = trim($serviceType);
 
-        Cache::forget('service_prices');
-        try { Cache::flush(); } catch (Exception $e) {}
-        return true;
+            DB::table('service_prices')
+                ->where('question_id', $qId)
+                ->delete();
+
+            if (!empty($sType)) {
+                DB::table('service_prices')
+                    ->where('service_type', $sType)
+                    ->where('question_id', $qId)
+                    ->delete();
+            }
+
+            Cache::forget('service_prices');
+            try { Cache::flush(); } catch (Exception $e) {}
+            return true;
+        });
     }
 
     public function reorderOptions(array $orderedOptionIds): bool
@@ -365,9 +375,11 @@ class WorkOrderService
 
     public function deleteServicePrice(int $id): bool
     {
-        ServicePrice::where('id', $id)->delete();
-        Cache::forget('service_prices');
-        try { Cache::flush(); } catch (Exception $e) {}
-        return true;
+        return DB::transaction(function () use ($id) {
+            DB::table('service_prices')->where('id', $id)->delete();
+            Cache::forget('service_prices');
+            try { Cache::flush(); } catch (Exception $e) {}
+            return true;
+        });
     }
 }

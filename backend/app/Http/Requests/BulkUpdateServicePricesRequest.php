@@ -19,7 +19,7 @@ class BulkUpdateServicePricesRequest extends FormRequest
     {
         return [
             'prices' => 'required|array',
-            'prices.*.id' => 'required|integer|exists:service_prices,id',
+            'prices.*.id' => 'required|integer',
             'prices.*.price' => 'required|numeric|min:0',
             'prices.*.label' => 'nullable|string|max:255'
         ];

@@ -19,6 +19,9 @@ composer install --no-interaction --prefer-dist
 echo ""
 echo "3/8 Laravel önbellekleri temizleniyor..."
 php artisan optimize:clear
+php artisan cache:clear || true
+php artisan config:clear || true
+php artisan route:clear || true
 
 echo ""
 echo "4/8 Migration çalıştırılıyor..."
@@ -44,7 +47,8 @@ sudo systemctl reload nginx
 
 echo ""
 echo "8/8 Backend servisi yeniden başlatılıyor..."
-sudo systemctl restart erca-backend
+sudo systemctl restart erca-backend || true
+sudo systemctl restart php8.2-fpm 2>/dev/null || sudo systemctl restart php8.1-fpm 2>/dev/null || sudo systemctl restart php8.3-fpm 2>/dev/null || sudo systemctl restart php-fpm 2>/dev/null || true
 
 echo ""
 echo "===================================="
