@@ -18,7 +18,7 @@ class CreateQuotationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'service_type' => 'required|string|in:tv-mount,paint,plumbing,electric',
+            'service_type' => 'required|string|max:100',
             'details' => 'nullable|array',
             'items' => 'nullable|array',
             'total_amount' => 'nullable|numeric'

@@ -1,10 +1,10 @@
 import { z } from 'zod';
 
 export const contactSchema = z.object({
-  name: z.string().min(2, 'İsim en az 2 karakter olmalıdır.').max(100, 'İsim çok uzun.'),
-  phone: z.string().min(10, 'Geçerli bir telefon numarası giriniz (örn: 05xx xxx xx xx).').max(20, 'Telefon numarası çok uzun.'),
-  email: z.string().email('Geçerli bir e-posta adresi giriniz.').optional().or(z.literal('')),
-  address: z.string().min(5, 'Lütfen açık ve detaylı adresinizi giriniz.').max(1000, 'Adres çok uzun.'),
+  name: z.string().min(2, 'Lütfen adınızı ve soyadınızı giriniz.').max(100, 'Ad soyad çok uzun.'),
+  phone: z.string().min(10, 'Geçerli bir telefon numarası giriniz (Örn: 0532 123 45 67)').max(20, 'Telefon numarası çok uzun.'),
+  email: z.string().email('Geçerli bir e-posta adresi giriniz (Örn: ahmet@gmail.com)').optional().or(z.literal('')),
+  address: z.string().min(3, 'Lütfen sokak, bina ve daire bilgilerinizi eksiksiz giriniz.').max(500, 'Adres çok uzun.'),
 });
 
 export const loginSchema = z.object({

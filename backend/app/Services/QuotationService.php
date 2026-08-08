@@ -135,14 +135,18 @@ class QuotationService
             $pdfRelativePath = 'storage/pdf/' . $pdfFileName;
             $pdfFullPath = storage_path('app/public/pdf/' . $pdfFileName);
 
-            $serviceNames = [
-                'tv-mount' => 'TV Montajı & Askı Aparatı Hizmeti',
-                'paint' => 'Boya & Dekorasyon Hizmeti',
-                'plumbing' => 'Sıhhi Tesisat Hizmeti',
-                'electric' => 'Elektrik Tesisatı Hizmeti'
-            ];
-
-            $serviceTitle = $serviceNames[$serviceType] ?? 'Ev Destek Hizmeti';
+            $dbService = \App\Models\Service::where('slug', $serviceType)->first();
+            if ($dbService) {
+                $serviceTitle = $dbService->name . ' Hizmeti';
+            } else {
+                $serviceNames = [
+                    'tv-mount' => 'TV Montajı & Askı Aparatı Hizmeti',
+                    'paint' => 'Boya & Dekorasyon Hizmeti',
+                    'plumbing' => 'Sıhhi Tesisat Hizmeti',
+                    'electric' => 'Elektrik Tesisatı Hizmeti'
+                ];
+                $serviceTitle = $serviceNames[$serviceType] ?? 'Ev Destek Hizmeti';
+            }
 
             $settings = $this->settingService->getAllSettings();
 
