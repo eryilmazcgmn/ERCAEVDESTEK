@@ -26,9 +26,16 @@ class JwtAuthenticate
      */
     public function handle(Request $request, Closure $next): Response
     {
+        $token = null;
         $authHeader = $request->header('Authorization');
 
-        if (!$authHeader || !preg_match('/Bearer\s(\S+)/', $authHeader, $matches)) {
+        if ($authHeader && preg_match('/Bearer\s(\S+)/i', $authHeader, $matches)) {
+            $token = $matches[1];
+        } elseif ($request->has('token')) {
+            $token = (string) ($request->query('token') ?? $request->input('token'));
+        }
+
+        if (empty($token)) {
             return response()->json([
                 'status' => false,
                 'message' => 'Yetkisiz erişim. Token bulunamadı.',
@@ -36,8 +43,6 @@ class JwtAuthenticate
                 'errors' => ['auth' => ['Token bulunamadı.']]
             ], 401);
         }
-
-        $token = $matches[1];
 
         try {
             $decoded = $this->jwtService->decode($token);

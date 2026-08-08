@@ -374,7 +374,7 @@ export default function WorkOrdersTab({
                     </div>
 
                     <a 
-                      href={`${backendUrl}/api/admin/work-orders/${wo.id}/pdf`} 
+                      href={`${backendUrl}/api/admin/work-orders/${wo.id}/pdf?token=${sessionStorage.getItem('adminToken') || ''}`} 
                       target="_blank" 
                       rel="noreferrer" 
                       className="px-2 py-1 rounded-lg bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-[10px] text-slate-700 dark:text-gray-300 hover:bg-slate-200 dark:hover:bg-gray-800 text-center flex items-center justify-center transition gap-1 cursor-pointer"

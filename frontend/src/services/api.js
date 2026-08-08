@@ -63,7 +63,10 @@ apiClient.interceptors.response.use(
   }
 );
 
-const getAuthHeader = (token) => token ? { headers: { Authorization: `Bearer ${token}` } } : {};
+const getAuthHeader = (token) => {
+  const t = token || sessionStorage.getItem('adminToken');
+  return t ? { headers: { Authorization: `Bearer ${t}` } } : {};
+};
 
 export const api = {
   // Public Endpoint: Start customer session
