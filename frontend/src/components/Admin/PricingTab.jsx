@@ -548,73 +548,7 @@ export default function PricingTab({
         </div>
       )}
 
-      {/* Edit Question Modal */}
-      {editQuestionModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 rounded-2xl max-w-md w-full p-6 space-y-5 shadow-2xl animate-in fade-in zoom-in duration-200">
-            <div className="flex justify-between items-center border-b border-slate-200 dark:border-gray-800 pb-3">
-              <h3 className="font-bold text-base text-slate-900 dark:text-white flex items-center gap-2">
-                <Edit2 className="w-4 h-4 text-blue-500" />
-                Soruyu Düzenle
-              </h3>
-              <button 
-                type="button" 
-                onClick={() => setEditQuestionModal(null)}
-                className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-gray-200"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
 
-            <form onSubmit={handleConfirmQuestionEdit} className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase mb-1">
-                  Soru Metni / Başlığı
-                </label>
-                <input 
-                  type="text" 
-                  value={editQuestionModal.title}
-                  onChange={(e) => setEditQuestionModal(prev => ({ ...prev, title: e.target.value }))}
-                  required
-                  placeholder="Örn: Kaç adet avize asılacak?"
-                  className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-slate-600 dark:text-gray-400 uppercase mb-1">
-                  Müşteri Cevap Tipi (Kontrol Türü)
-                </label>
-                <select 
-                  value={editQuestionModal.type}
-                  onChange={(e) => setEditQuestionModal(prev => ({ ...prev, type: e.target.value }))}
-                  className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-xs text-slate-900 dark:text-white focus:outline-none focus:border-blue-500"
-                >
-                  <option value="radio">🔘 Radyo Butonlar (Tekli Seçim Kartları)</option>
-                  <option value="select">▼ Açılır Menü (Dropdown)</option>
-                </select>
-              </div>
-
-              <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-gray-800">
-                <button
-                  type="button"
-                  onClick={() => setEditQuestionModal(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 dark:bg-gray-900 text-slate-700 dark:text-gray-300 text-xs font-semibold hover:bg-slate-200 transition"
-                >
-                  İptal
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold transition flex items-center gap-1.5 shadow-md"
-                >
-                  <Save className="w-3.5 h-3.5" />
-                  Soruyu Güncelle
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
 
       {/* Pricing Inputs Grouped by Question */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
