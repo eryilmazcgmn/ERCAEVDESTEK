@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Save, RefreshCw, Info, Plus, Trash2, Edit2, X, HelpCircle, Layers, ListFilter, ChevronUp, ChevronDown, GitBranch } from 'lucide-react';
 
 export default function PricingTab({
