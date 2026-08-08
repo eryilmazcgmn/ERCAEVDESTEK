@@ -198,11 +198,6 @@ export default function StepQuestions({
                             </div>
                             <span className="text-sm font-medium">{opt}</span>
                           </div>
-                          {optPrice > 0 && (
-                            <span className="text-xs font-semibold text-green-600 dark:text-green-400 shrink-0 ml-2">
-                              +₺{optPrice.toLocaleString('tr-TR')}
-                            </span>
-                          )}
                         </label>
                       );
                     })}

@@ -285,11 +285,6 @@ export default function StepChatAssistant({
                         <span className="text-sm font-semibold text-slate-800 dark:text-gray-200 group-hover:text-primary-600 dark:group-hover:text-primary-400">
                           {opt}
                         </span>
-                        {priceAddon > 0 && (
-                          <span className="text-xs font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-lg border border-emerald-200/60 dark:border-emerald-500/20">
-                            +₺{priceAddon.toLocaleString('tr-TR')}
-                          </span>
-                        )}
                       </button>
                     );
                   })}
