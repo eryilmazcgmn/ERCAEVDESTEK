@@ -98,6 +98,66 @@ export default function StepQuotation({
   const workOrderId = compiledWorkOrder?.id || compiledWorkOrder?.work_order_id;
   const workOrderCode = workOrderId ? `WO-${workOrderId}` : (sessionId ? `SES-${sessionId.slice(-6)}` : 'WO-1001');
   const isApproved = !!compiledWorkOrder;
+  const woStatus = compiledWorkOrder?.status || (compiledQuotation?.status === 'approved' ? 'deposit_pending' : 'pending');
+
+  const getStatusInfo = (status) => {
+    switch (status) {
+      case 'deposit_pending':
+        return {
+          title: 'KAPORA ÖDEMESİ BEKLENİYOR',
+          badgeText: 'KAPORA BEKLENİYOR',
+          badgeClass: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-300 dark:border-amber-500/30',
+          bannerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-500/30 text-amber-900 dark:text-amber-200',
+          bannerText: 'Sipariş kaydınız oluşturuldu. Hizmetinizin kesinleşebilmesi için lütfen %20 kaporayı yukarıdaki IBAN hesabına yatırınız.'
+        };
+      case 'deposit_declared':
+        return {
+          title: 'DEKONT İNCELENİYOR',
+          badgeText: 'ÖDEME KONTROLÜNDE',
+          badgeClass: 'bg-blue-100 dark:bg-blue-950/60 text-blue-700 dark:text-blue-400 border-blue-300 dark:border-blue-500/30',
+          bannerClass: 'bg-blue-50 dark:bg-blue-950/40 border-blue-300 dark:border-blue-500/30 text-blue-900 dark:text-blue-200',
+          bannerText: 'Kapora ödeme bildiriminiz alındı! Finans ekibimiz ödemeyi kontrol ettikten sonra randevunuz onaylanacaktır.'
+        };
+      case 'deposit_paid':
+      case 'approved':
+      case 'accepted':
+      case 'scheduled':
+      case 'in_progress':
+        return {
+          title: 'ONAYLANDI - USTA YOLDA',
+          badgeText: 'KAPORA ONAYLANDI',
+          badgeClass: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300 dark:border-emerald-500/30',
+          bannerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 dark:border-emerald-500/30 text-emerald-900 dark:text-emerald-200',
+          bannerText: 'Kaporanız onaylandı! Uzman ustamız belirlenen randevu saatinde adresinizde olacaktır.'
+        };
+      case 'completed':
+        return {
+          title: 'İŞLEM TAMAMLANDI',
+          badgeText: 'TAMAMLANDI',
+          badgeClass: 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-300',
+          bannerClass: 'bg-emerald-50 dark:bg-emerald-950/40 border-emerald-300 text-emerald-900',
+          bannerText: 'Hizmet tamamlanmıştır. Bizi tercih ettiğiniz için teşekkür ederiz!'
+        };
+      case 'cancelled':
+        return {
+          title: 'İPTAL EDİLDİ',
+          badgeText: 'İPTAL EDİLDİ',
+          badgeClass: 'bg-red-100 dark:bg-red-950/60 text-red-700 dark:text-red-400 border-red-300',
+          bannerClass: 'bg-red-50 dark:bg-red-950/40 border-red-300 text-red-900',
+          bannerText: 'Bu teklif veya iş emri iptal edilmiştir.'
+        };
+      default:
+        return {
+          title: 'TEKLİF HAZIR',
+          badgeText: 'TEKLİF HAZIR',
+          badgeClass: 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-300',
+          bannerClass: 'bg-amber-50 dark:bg-amber-950/40 border-amber-300 text-amber-900',
+          bannerText: 'Teklif detaylarını inceleyip "Teklifi Onayla" butonuna tıklayarak kapora ödemenizi yapabilirsiniz.'
+        };
+    }
+  };
+
+  const statusInfo = getStatusInfo(woStatus);
 
   const openWhatsAppDekont = () => {
     const message = encodeURIComponent(
@@ -111,29 +171,24 @@ export default function StepQuotation({
       <div>
         <div className="flex items-center justify-between mb-6 pb-4 border-b border-slate-200 dark:border-gray-800">
           <div className="flex items-center gap-2">
-            <ShieldCheck className="w-5 h-5 text-green-400" />
-            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Fiyat Teklifi ve Onay</h2>
+            <ShieldCheck className="w-5 h-5 text-blue-500" />
+            <h2 className="text-lg font-bold text-slate-900 dark:text-white">Fiyat Teklifi ve Ödeme Takibi</h2>
           </div>
-          <span className="text-xs text-green-400 font-medium flex items-center gap-1">
-            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span>
-            {isApproved ? 'Teklif Onaylandı' : 'Teklif Hazır'}
+          <span className={`text-xs font-bold px-3 py-1 rounded-full border ${statusInfo.badgeClass}`}>
+            {statusInfo.badgeText}
           </span>
         </div>
 
-        {/* Top Alert if quote needs approval */}
-        {!isApproved && (
-          <div className="mb-6 p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-500/30 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-            <div className="flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-amber-500 shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-amber-900 dark:text-amber-200">Teklifiniz Hazır!</h4>
-                <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
-                  Detayları inceleyip <strong>"Teklifi Onayla"</strong> butonuna tıklayarak kaporayı ödeyebilirsiniz.
-                </p>
-              </div>
+        {/* Top Status Alert Banner */}
+        <div className={`mb-6 p-4 rounded-2xl border flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 ${statusInfo.bannerClass}`}>
+          <div className="flex items-start gap-3">
+            <AlertCircle className="w-5 h-5 shrink-0 mt-0.5 opacity-80" />
+            <div>
+              <h4 className="text-sm font-bold">{statusInfo.title}</h4>
+              <p className="text-xs mt-0.5 opacity-90">{statusInfo.bannerText}</p>
             </div>
           </div>
-        )}
+        </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
           {/* Sol Kolon: Fiyatlandırma ve Hizmet Özeti */}
@@ -156,8 +211,8 @@ export default function StepQuotation({
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500 dark:text-gray-400">Durum:</span>
-                  <span className={`font-bold uppercase ${isApproved ? 'text-green-400' : 'text-amber-400'}`}>
-                    {isApproved ? 'Onaylandı' : 'Onay Bekliyor'}
+                  <span className={`font-bold uppercase px-2 py-0.5 rounded text-[11px] border ${statusInfo.badgeClass}`}>
+                    {statusInfo.badgeText}
                   </span>
                 </div>
               </div>
