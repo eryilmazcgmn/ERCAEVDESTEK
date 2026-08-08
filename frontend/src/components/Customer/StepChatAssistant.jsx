@@ -106,10 +106,20 @@ export default function StepChatAssistant({
   const isCompleted = activeQuestionIndex >= dynamicQuestions.length && dynamicQuestions.length > 0;
   const activeQuestion = dynamicQuestions[activeQuestionIndex];
 
-  // Auto scroll to bottom when messages or typing state changes
+  const chatContainerRef = useRef(null);
+
+  // Auto scroll logic: On initial question, scroll to top so welcome message is 100% visible.
+  // When user answers questions, scroll down smoothly to next active question.
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [activeQuestionIndex, isTyping, formAnswers]);
+    if (activeQuestionIndex === 0) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = 0;
+      }
+    } else if (activeQuestionIndex > 0 || isTyping) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [activeQuestionIndex, isTyping]);
 
   // Handle Option Selection with short typing effect
   const handleSelectOption = (questionId, optionValue) => {
@@ -203,7 +213,7 @@ export default function StepChatAssistant({
       )}
 
       {/* ─── Chat Stream Container ─── */}
-      <div className="space-y-4 min-h-[320px] max-h-[520px] overflow-y-auto pr-1 pb-4">
+      <div ref={chatContainerRef} className="space-y-4 min-h-[320px] max-h-[520px] overflow-y-auto pr-1 pb-4">
         {/* Welcome Bot Message */}
         <div className="flex items-start gap-3 animate-fade-in-up">
           <div className="w-8 h-8 rounded-xl bg-primary-600 text-white flex items-center justify-center shrink-0 shadow-sm">

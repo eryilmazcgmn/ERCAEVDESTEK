@@ -80,6 +80,11 @@ export default function CustomerWizardPage() {
       .finally(() => setLoadingServices(false));
   }, []);
 
+  // Scroll to top when activeStep changes
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }, [session.activeStep]);
+
   // Loading state — session not ready yet but session was requested
   if (session.sessionRequested && !session.sessionStarted && !session.sessionError) {
     return (

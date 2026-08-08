@@ -82,9 +82,18 @@ export default function StepContactChatAssistant({
   // Validation Error States
   const [errors, setErrors] = useState({});
 
+  const chatContainerRef = useRef(null);
+
   // Auto-scroll on step change or typing
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    if (currentStep === 1) {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (chatContainerRef.current) {
+        chatContainerRef.current.scrollTop = 0;
+      }
+    } else {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
   }, [currentStep, isTyping]);
 
   // Determine initial step based on existing session data
@@ -225,7 +234,7 @@ export default function StepContactChatAssistant({
       </div>
 
       {/* ─── Chat Stream ─── */}
-      <div className="space-y-4 min-h-[320px] max-h-[520px] overflow-y-auto pr-1 pb-4">
+      <div ref={chatContainerRef} className="space-y-4 min-h-[320px] max-h-[520px] overflow-y-auto pr-1 pb-4">
         {/* Welcome Bot Message */}
         <div className="flex items-start gap-3 animate-fade-in-up">
           <div className="w-8 h-8 rounded-xl bg-primary-600 text-white flex items-center justify-center shrink-0 shadow-sm">

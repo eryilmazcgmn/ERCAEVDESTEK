@@ -62,15 +62,20 @@ export default function StepQuotationChatAssistant({
     };
     loadBankInfo();
 
+    // Scroll to top on mount
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
     // Short typing transition
     const timer = setTimeout(() => setIsTyping(false), 450);
     return () => clearTimeout(timer);
   }, []);
 
-  // Auto-scroll
+  // Auto-scroll on approval or status changes
   useEffect(() => {
-    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [compiledQuotation, compiledWorkOrder, isTyping, appliedCoupon, depositDeclared]);
+    if (compiledWorkOrder || depositDeclared) {
+      chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [compiledQuotation, compiledWorkOrder, appliedCoupon, depositDeclared]);
 
   // Service Name Display
   const serviceObj = services.find(s => s.id === selectedService || s.slug === selectedService);
