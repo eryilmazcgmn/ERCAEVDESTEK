@@ -1,6 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, CheckCircle2, FileText, ChevronRight, Copy, Building, MessageSquare, ExternalLink, CreditCard, ThumbsUp, AlertCircle } from 'lucide-react';
+import { toast } from 'sonner';
 import { api } from '../../services/api';
+
+function formatIban(ibanStr) {
+  if (!ibanStr) return 'TR00 0000 0000 0000 0000 0000 00';
+  const clean = ibanStr.replace(/[^a-zA-Z0-9]/g, '').toUpperCase();
+  return clean.match(/.{1,4}/g)?.join(' ') || ibanStr;
+}
 
 export default function StepQuotation({
   sessionId,
@@ -53,10 +60,37 @@ export default function StepQuotation({
     loadBankInfo();
   }, []);
 
-  const copyIban = () => {
-    navigator.clipboard.writeText(bankInfo.iban.replace(/\s+/g, ''));
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+  const fallbackCopy = (text, type) => {
+    try {
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      textarea.style.position = 'fixed';
+      textarea.style.left = '-9999px';
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+      toast.success(`${type} kopyalandı!`);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      toast.error('Kopyalama başarısız oldu. Lütfen manuel seçip kopyalayın.');
+    }
+  };
+
+  const copyText = (text, type = 'IBAN') => {
+    const cleanText = text.replace(/\s+/g, '');
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(cleanText)
+        .then(() => {
+          toast.success(`${type} kopyalandı!`);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 2000);
+        })
+        .catch(() => fallbackCopy(cleanText, type));
+    } else {
+      fallbackCopy(cleanText, type);
+    }
   };
 
   const totalAmount = compiledQuotation?.price_details?.total || 0;
@@ -232,28 +266,52 @@ export default function StepQuotation({
                     </span>
                   </div>
 
-                  <div className="p-4 rounded-xl bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 space-y-3">
-                    <div className="flex items-center justify-between border-b border-slate-200 dark:border-gray-800 pb-2">
-                      <div className="flex items-center gap-2">
-                        <Building className="w-4 h-4 text-slate-500 dark:text-gray-400" />
-                        <span className="text-xs font-bold text-slate-900 dark:text-white">{bankInfo.bankName}</span>
-                      </div>
-                      <span className="text-xs text-slate-500 dark:text-gray-400">{bankInfo.accountName}</span>
+                  <div className="p-4 rounded-xl bg-white dark:bg-gray-950 border border-slate-200 dark:border-gray-800 space-y-4 shadow-sm">
+                    {/* Banka Adı */}
+                    <div className="flex items-center justify-between border-b border-slate-100 dark:border-gray-800 pb-2.5">
+                      <span className="text-[11px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider">Banka Adı</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1.5">
+                        <Building className="w-4 h-4 text-blue-500" />
+                        {bankInfo.bankName}
+                      </span>
                     </div>
 
+                    {/* Alıcı Adı / Firma Adı */}
                     <div className="space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider block">TR IBAN</span>
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider block">Alıcı Adı / Firma Unvanı</span>
                       <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-slate-100 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl p-3 font-mono text-xs text-slate-900 dark:text-white tracking-widest">
-                          {bankInfo.iban}
+                        <div className="flex-1 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl p-2.5 text-xs font-bold text-slate-900 dark:text-white">
+                          {bankInfo.accountName}
                         </div>
                         <button 
                           type="button"
-                          onClick={copyIban}
-                          className="p-3 rounded-xl bg-primary-100 dark:bg-primary-900/40 border border-primary-200 dark:border-primary-500/30 hover:bg-primary-200 dark:hover:bg-primary-800 transition text-primary-600 dark:text-primary-300 shrink-0"
-                          title="Kopyala"
+                          onClick={() => copyText(bankInfo.accountName, 'Alıcı Adı')}
+                          className="p-2.5 rounded-xl bg-slate-100 dark:bg-gray-800 border border-slate-200 dark:border-gray-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 hover:text-blue-500 transition text-slate-600 dark:text-gray-300 shrink-0"
+                          title="Alıcı Adını Kopyala"
                         >
-                          {copied ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-4 h-4" />}
+                          <Copy className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* TR IBAN */}
+                    <div className="space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 dark:text-gray-400 uppercase tracking-wider block">TR IBAN Numarası</span>
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl p-2.5 font-mono text-xs font-bold text-slate-900 dark:text-white tracking-widest">
+                          {formatIban(bankInfo.iban)}
+                        </div>
+                        <button 
+                          type="button"
+                          onClick={() => copyText(bankInfo.iban, 'IBAN')}
+                          className={`p-2.5 rounded-xl border transition shrink-0 flex items-center justify-center ${
+                            copied 
+                              ? 'bg-green-50 dark:bg-green-950/40 border-green-300 text-green-600'
+                              : 'bg-primary-600 hover:bg-primary-500 text-white border-primary-600 shadow-sm'
+                          }`}
+                          title="IBAN'ı Kopyala"
+                        >
+                          {copied ? <CheckCircle2 className="w-4 h-4 text-green-500" /> : <Copy className="w-3.5 h-3.5" />}
                         </button>
                       </div>
                     </div>
