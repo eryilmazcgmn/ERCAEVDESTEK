@@ -1,4 +1,3 @@
-import React from 'react';
 import { 
   LayoutDashboard, 
   Users, 
@@ -7,7 +6,8 @@ import {
   LogOut,
   Settings,
   Eye,
-  HardHat
+  HardHat,
+  Layers
 } from 'lucide-react';
 
 export default function AdminSidebar({
@@ -62,6 +62,7 @@ export default function AdminSidebar({
           { id: 'technicians', name: 'Ustalar', icon: HardHat },
           { id: 'quotations', name: 'Teklifler', icon: DollarSign },
           { id: 'work-orders', name: 'İş Emirleri', icon: Briefcase },
+          { id: 'services', name: 'Hizmetler', icon: Layers },
           { id: 'pricing', name: 'Fiyat Yönetimi', icon: DollarSign },
           { id: 'settings', name: 'Genel Ayarlar', icon: Settings }
         ].map(tab => {

@@ -33,7 +33,18 @@ class SettingService
                 'whatsapp_number' => '905551234567',
             ];
 
-            return array_merge($defaults, $settings);
+            $merged = array_merge($defaults, $settings);
+
+            // Ensure contact_phone and company_phone stay in sync
+            // Admin panel saves as contact_phone, frontend reads company_phone
+            if (!empty($merged['contact_phone']) && (empty($merged['company_phone']) || $merged['company_phone'] === $defaults['company_phone'])) {
+                $merged['company_phone'] = $merged['contact_phone'];
+            }
+            if (!empty($merged['company_phone']) && empty($merged['contact_phone'])) {
+                $merged['contact_phone'] = $merged['company_phone'];
+            }
+
+            return $merged;
         });
     }
 

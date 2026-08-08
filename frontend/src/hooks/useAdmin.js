@@ -18,6 +18,7 @@ export function useAdmin() {
   const [crmCustomers, setCrmCustomers] = useState([]);
   const [crmTechnicians, setCrmTechnicians] = useState([]);
   const [crmPrices, setCrmPrices] = useState([]);
+  const [crmServices, setCrmServices] = useState([]);
   const [activeAdminTab, setActiveAdminTab] = useState(() => sessionStorage.getItem('activeAdminTab') || 'dashboard');
   const [loadingCrmData, setLoadingCrmData] = useState(false);
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -75,6 +76,10 @@ export function useAdmin() {
         if (woRes) setCrmWorkOrders(woRes.data || woRes.work_orders || []);
         if (techRes) setCrmTechnicians(techRes.data || techRes.technicians || []);
         if (priceRes) setCrmPrices(priceRes.data || priceRes.prices || []);
+
+        // Fetch services for admin
+        const svcRes = await api.fetchAdminServices(token).catch(() => null);
+        if (svcRes) setCrmServices(svcRes.data || []);
       }
     } catch (err) {
       console.error('Error loading CRM stats:', err);
@@ -210,6 +215,59 @@ export function useAdmin() {
     return false;
   }, [adminToken, fetchCrmStats]);
 
+  const fetchCrmServices = useCallback(async (token = adminToken) => {
+    try {
+      const res = await api.fetchAdminServices(token);
+      setCrmServices(res.data || []);
+    } catch (err) {
+      console.error('Error fetching services:', err);
+    }
+  }, [adminToken]);
+
+  const handleCreateService = useCallback(async (serviceData) => {
+    try {
+      const data = await api.createService(serviceData, adminToken);
+      if (data.status || data.success) {
+        toast.success('Hizmet başarıyla eklendi.');
+        fetchCrmServices();
+        return true;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Hizmet eklenirken hata oluştu.');
+    }
+    return false;
+  }, [adminToken, fetchCrmServices]);
+
+  const handleUpdateService = useCallback(async (id, serviceData) => {
+    try {
+      const data = await api.updateService(id, serviceData, adminToken);
+      if (data.status || data.success) {
+        toast.success('Hizmet güncellendi.');
+        fetchCrmServices();
+        return true;
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Hizmet güncellenirken hata oluştu.');
+    }
+    return false;
+  }, [adminToken, fetchCrmServices]);
+
+  const handleDeleteService = useCallback(async (id) => {
+    if (!window.confirm('Bu hizmeti silmek istediğinizden emin misiniz?')) return;
+    try {
+      const data = await api.deleteService(id, adminToken);
+      if (data.status || data.success) {
+        toast.success('Hizmet silindi.');
+        fetchCrmServices();
+      }
+    } catch (err) {
+      console.error(err);
+      toast.error(err.message || 'Hizmet silinirken hata oluştu.');
+    }
+  }, [adminToken, fetchCrmServices]);
+
   const handleDeleteTechnician = useCallback(async (techId) => {
     if (!window.confirm('Bu ustayı silmek istediğinizden emin misiniz?')) return;
     setLoadingCrmData(true);
@@ -277,6 +335,11 @@ export function useAdmin() {
     setTargetWoId,
     handleNavigateToWorkOrder,
     handleUpdateWoStatus,
-    handleAssignTechnician
+    handleAssignTechnician,
+    crmServices,
+    fetchCrmServices,
+    handleCreateService,
+    handleUpdateService,
+    handleDeleteService
   };
 }

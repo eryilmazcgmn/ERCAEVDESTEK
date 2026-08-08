@@ -26,28 +26,28 @@ export default function StepWelcome({
           <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-64 h-64 rounded-full bg-pink-500/5 blur-[60px]"></div>
         </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8 py-12 md:py-20 text-center">
+        <div className="relative z-10 max-w-4xl mx-auto px-4 md:px-8 py-10 md:py-20 text-center">
           {/* Badge */}
-          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100/80 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-500/20 text-primary-700 dark:text-primary-300 text-xs font-bold mb-6 animate-fade-in-up">
+          <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-primary-100/80 dark:bg-primary-900/30 border border-primary-200 dark:border-primary-500/20 text-primary-700 dark:text-primary-300 text-xs font-bold mb-5 animate-fade-in-up">
             <Zap className="w-3.5 h-3.5" />
             {settings?.company_address || 'Ankara — Çankaya'} Bölgesi Hizmet Ağı
           </div>
 
           {/* Main Heading */}
-          <h2 className="text-3xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-4 leading-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+          <h2 className="text-2xl md:text-5xl font-extrabold text-slate-900 dark:text-white mb-3 leading-tight animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
             Evinizin ihtiyacını seçin,
             <br />
             <span className="gradient-text">anında fiyat alın.</span>
           </h2>
 
           {/* Subtitle */}
-          <p className="text-base md:text-lg text-slate-500 dark:text-gray-400 max-w-xl mx-auto mb-10 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+          <p className="text-sm md:text-lg text-slate-500 dark:text-gray-400 max-w-xl mx-auto mb-8 leading-relaxed animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
             Birkaç soruya cevap verin, saniyeler içinde net fiyat teklifinizi görün.
             Kaporanızı yatırın, uzman ustamız kapınıza gelsin!
           </p>
 
           {/* Trust Badges */}
-          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-12 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+          <div className="flex flex-wrap items-center justify-center gap-3 md:gap-6 mb-8 animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
             {trustBadges.map((badge, i) => {
               const IconComp = badge.icon;
               return (
@@ -62,37 +62,51 @@ export default function StepWelcome({
       </div>
 
       {/* ─── Service Cards ─── */}
-      <div className="max-w-4xl mx-auto px-4 md:px-8 -mt-4 md:-mt-8 relative z-20 pb-12 w-full">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 md:gap-4">
+      <div className="max-w-4xl mx-auto px-4 md:px-8 -mt-2 md:-mt-8 relative z-20 pb-12 w-full">
+        {/* Mobile: 2-column compact grid | Desktop: 2-column detailed cards */}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
           {services.map((srv, index) => {
             const IconComp = srv.icon;
+            const isSelected = selectedService === srv.id;
             return (
               <button
                 key={srv.id}
                 type="button"
                 onClick={() => handleQuickServiceSelect(srv.id)}
-                className={`service-card group relative p-5 md:p-6 rounded-2xl border flex items-center gap-4 transition-all text-left animate-fade-in-up ${
-                  selectedService === srv.id
+                className={`service-card group relative rounded-2xl border flex flex-col items-center text-center p-4 md:p-6 md:flex-row md:items-center md:text-left md:gap-4 transition-all animate-fade-in-up ${
+                  isSelected
                     ? 'border-primary-500/60 bg-primary-50 dark:bg-primary-900/20 shadow-lg shadow-primary-500/10'
                     : 'border-slate-200 dark:border-gray-800 bg-white dark:bg-gray-900/60 hover:border-primary-400/50 hover:shadow-lg hover:shadow-slate-200/50 dark:hover:shadow-none'
                 }`}
-                style={{ animationDelay: `${0.4 + index * 0.08}s` }}
+                style={{ animationDelay: `${0.35 + index * 0.06}s` }}
               >
-                <div className={`p-3 rounded-xl border transition-all ${
-                  selectedService === srv.id
+                {/* Icon — centered on mobile, left-aligned on desktop */}
+                <div className={`p-3 md:p-3 rounded-xl border transition-all mb-2 md:mb-0 ${
+                  isSelected
                     ? 'bg-primary-100 dark:bg-primary-900/40 border-primary-200 dark:border-primary-500/30'
                     : 'bg-slate-50 dark:bg-gray-800 border-slate-200 dark:border-gray-700 group-hover:scale-110 group-hover:border-primary-300 dark:group-hover:border-primary-600'
                 } ${srv.color}`}>
-                  <IconComp className="w-6 h-6" />
+                  <IconComp className="w-6 h-6 md:w-6 md:h-6" />
                 </div>
+
+                {/* Service name + price badge */}
                 <div className="flex-1 min-w-0">
-                  <span className="block text-sm md:text-base font-bold text-slate-800 dark:text-gray-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors">
+                  <span className="block text-xs md:text-base font-bold text-slate-800 dark:text-gray-200 group-hover:text-slate-900 dark:group-hover:text-white transition-colors leading-tight">
                     {srv.name}
                   </span>
-                  <span className="block text-xs text-slate-400 dark:text-gray-500 mt-0.5">{srv.desc}</span>
+                  {/* Description — hidden on mobile, shown on desktop */}
+                  <span className="hidden md:block text-xs text-slate-400 dark:text-gray-500 mt-0.5">{srv.desc}</span>
+                  {/* Price badge — always visible */}
+                  {srv.min_price > 0 && (
+                    <span className="inline-block mt-1.5 text-[10px] md:text-[11px] font-semibold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-950/30 px-2 py-0.5 rounded-full border border-green-200 dark:border-green-500/20">
+                      ₺{srv.min_price.toLocaleString('tr-TR')}'den
+                    </span>
+                  )}
                 </div>
-                <ChevronRight className={`w-5 h-5 flex-shrink-0 transition-all ${
-                  selectedService === srv.id
+
+                {/* Arrow — hidden on mobile, visible on desktop */}
+                <ChevronRight className={`hidden md:block w-5 h-5 flex-shrink-0 transition-all ${
+                  isSelected
                     ? 'text-primary-500'
                     : 'text-slate-300 dark:text-gray-600 group-hover:text-primary-400 group-hover:translate-x-1'
                 }`} />

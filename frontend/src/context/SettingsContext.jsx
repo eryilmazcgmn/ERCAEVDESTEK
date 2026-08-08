@@ -11,6 +11,7 @@ export const SettingsProvider = ({ children }) => {
         company_name: 'ERCA EV DESTEK',
         contact_email: '',
         contact_phone: '',
+        company_phone: '',
         company_address: '',
         primary_color: '#9333ea',
         secondary_color: '#3b82f6',

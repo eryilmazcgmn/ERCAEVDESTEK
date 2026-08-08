@@ -256,6 +256,36 @@ export const api = {
     return res;
   },
 
+  // Public: Fetch active services for homepage
+  fetchServices: async () => {
+    const res = await apiClient.get('/services');
+    return res;
+  },
+
+  // Admin: Fetch all services (including inactive)
+  fetchAdminServices: async (token) => {
+    const res = await apiClient.get('/admin/services', getAuthHeader(token));
+    return res;
+  },
+
+  // Admin: Create a new service
+  createService: async (serviceData, token) => {
+    const res = await apiClient.post('/admin/services', serviceData, getAuthHeader(token));
+    return res;
+  },
+
+  // Admin: Update an existing service
+  updateService: async (id, serviceData, token) => {
+    const res = await apiClient.put(`/admin/services/${id}`, serviceData, getAuthHeader(token));
+    return res;
+  },
+
+  // Admin: Delete a service
+  deleteService: async (id, token) => {
+    const res = await apiClient.delete(`/admin/services/${id}`, getAuthHeader(token));
+    return res;
+  },
+
   // Helper getters
   getBackendUrl: () => BACKEND_URL,
   getApiUrl: () => API_URL

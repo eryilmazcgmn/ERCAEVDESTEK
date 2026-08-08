@@ -17,6 +17,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Log;
+use App\Models\Service;
 use App\Services\Auth\JwtService;
 use Exception;
 
@@ -451,4 +452,133 @@ class AdminController extends Controller
             ], 500);
         }
     }
+
+    // ────────────────────────────────────────────────
+    // Service CRUD (Admin Panel)
+    // ────────────────────────────────────────────────
+
+    /**
+     * Get all services (admin - includes inactive).
+     */
+    public function getServices(): JsonResponse
+    {
+        try {
+            $services = Service::ordered()->get();
+            return response()->json([
+                'status' => true,
+                'message' => 'Hizmetler getirildi.',
+                'data' => $services,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin getServices error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Hizmetler yüklenirken hata oluştu.',
+                'data' => null,
+                'errors' => ['server' => ['Sunucu hatası.']]
+            ], 500);
+        }
+    }
+
+    /**
+     * Create a new service.
+     */
+    public function createService(Request $request): JsonResponse
+    {
+        try {
+            $validated = $request->validate([
+                'name' => 'required|string|max:100',
+                'slug' => 'required|string|max:100|unique:services,slug',
+                'description' => 'nullable|string|max:255',
+                'icon' => 'nullable|string|max:50',
+                'color' => 'nullable|string|max:50',
+                'sort_order' => 'nullable|integer',
+                'is_active' => 'nullable|boolean',
+                'min_price' => 'nullable|integer|min:0',
+            ]);
+
+            $service = Service::create($validated);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Hizmet başarıyla oluşturuldu.',
+                'data' => $service,
+                'errors' => null
+            ], 201);
+        } catch (Exception $e) {
+            Log::error('Admin createService error', ['exception' => $e]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Hizmet oluşturulurken hata: ' . $e->getMessage(),
+                'data' => null,
+                'errors' => ['service' => [$e->getMessage()]]
+            ], 400);
+        }
+    }
+
+    /**
+     * Update an existing service.
+     */
+    public function updateService(Request $request, int $id): JsonResponse
+    {
+        try {
+            $service = Service::findOrFail($id);
+
+            $validated = $request->validate([
+                'name' => 'sometimes|string|max:100',
+                'slug' => 'sometimes|string|max:100|unique:services,slug,' . $id,
+                'description' => 'nullable|string|max:255',
+                'icon' => 'nullable|string|max:50',
+                'color' => 'nullable|string|max:50',
+                'sort_order' => 'nullable|integer',
+                'is_active' => 'nullable|boolean',
+                'min_price' => 'nullable|integer|min:0',
+            ]);
+
+            $service->update($validated);
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Hizmet başarıyla güncellendi.',
+                'data' => $service->fresh(),
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin updateService error', ['exception' => $e, 'service_id' => $id]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Hizmet güncellenirken hata: ' . $e->getMessage(),
+                'data' => null,
+                'errors' => ['service' => [$e->getMessage()]]
+            ], 400);
+        }
+    }
+
+    /**
+     * Delete a service.
+     */
+    public function deleteService(int $id): JsonResponse
+    {
+        try {
+            $service = Service::findOrFail($id);
+            $service->delete();
+
+            return response()->json([
+                'status' => true,
+                'message' => 'Hizmet silindi.',
+                'data' => null,
+                'errors' => null
+            ], 200);
+        } catch (Exception $e) {
+            Log::error('Admin deleteService error', ['exception' => $e, 'service_id' => $id]);
+            return response()->json([
+                'status' => false,
+                'message' => 'Hizmet silinirken hata oluştu.',
+                'data' => null,
+                'errors' => ['server' => ['Silme işlemi başarısız.']]
+            ], 500);
+        }
+    }
 }
+

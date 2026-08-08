@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Toaster } from 'sonner';
 import {
@@ -12,6 +12,7 @@ import {
   ChevronLeft,
   RotateCcw,
 } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 
 import { api } from '../services/api';
 import { useSession } from '../hooks/useSession';
@@ -23,12 +24,18 @@ import StepQuestions from '../components/Customer/StepQuestions';
 import StepContact from '../components/Customer/StepContact';
 import StepQuotation from '../components/Customer/StepQuotation';
 
-const services = [
-  { id: 'tv-mount', name: 'TV Montajı & Askı', icon: Wrench, color: 'text-primary-400', desc: 'Duvara profesyonel TV montajı' },
-  { id: 'paint', name: 'Boyama & Dekorasyon', icon: FlameKindling, color: 'text-yellow-400', desc: 'İç cephe boya ve badana' },
-  { id: 'plumbing', name: 'Sıhhi Tesisat', icon: Droplet, color: 'text-blue-400', desc: 'Su tesisatı ve onarım' },
-  { id: 'electric', name: 'Elektrik İşleri', icon: Zap, color: 'text-red-400', desc: 'Elektrik arıza ve montaj' },
+// Fallback services if API fails
+const fallbackServices = [
+  { id: 'tv-mount', slug: 'tv-mount', name: 'TV Montajı & Askı', icon: 'Wrench', color: 'text-primary-400', description: 'Duvara profesyonel TV montajı', min_price: 750 },
+  { id: 'paint', slug: 'paint', name: 'Boyama & Dekorasyon', icon: 'FlameKindling', color: 'text-yellow-400', description: 'İç cephe boya ve badana', min_price: 1500 },
+  { id: 'plumbing', slug: 'plumbing', name: 'Sıhhi Tesisat', icon: 'Droplet', color: 'text-blue-400', description: 'Su tesisatı ve onarım', min_price: 600 },
+  { id: 'electric', slug: 'electric', name: 'Elektrik İşleri', icon: 'Zap', color: 'text-red-400', description: 'Elektrik arıza ve montaj', min_price: 400 },
 ];
+
+// Map icon name string to actual Lucide component
+function resolveIcon(iconName) {
+  return LucideIcons[iconName] || Wrench;
+}
 
 const stepsData = [
   { num: 1, title: 'Hizmet Seçimi' },
@@ -41,10 +48,37 @@ export default function CustomerWizardPage() {
   const session = useSession();
   const { settings } = useSettings();
   const navigate = useNavigate();
+  const [services, setServices] = useState([]);
+  const [loadingServices, setLoadingServices] = useState(true);
 
   const backendUrl = api.getBackendUrl();
   const totalSteps = stepsData.length;
   const progress = (session.activeStep / totalSteps) * 100;
+
+  // Phone number — prioritize contact_phone, fallback to company_phone
+  const phoneNumber = settings?.contact_phone || settings?.company_phone || '';
+
+  // Fetch services from API on mount
+  useEffect(() => {
+    api.fetchServices()
+      .then(res => {
+        const data = res?.data || [];
+        if (data.length > 0) {
+          setServices(data.map(s => ({
+            ...s,
+            id: s.slug || s.id,
+            icon: resolveIcon(s.icon),
+            desc: s.description,
+          })));
+        } else {
+          setServices(fallbackServices.map(s => ({ ...s, icon: resolveIcon(s.icon), desc: s.description })));
+        }
+      })
+      .catch(() => {
+        setServices(fallbackServices.map(s => ({ ...s, icon: resolveIcon(s.icon), desc: s.description })));
+      })
+      .finally(() => setLoadingServices(false));
+  }, []);
 
   // Loading state — session not ready yet but session was requested
   if (session.sessionRequested && !session.sessionStarted && !session.sessionError) {
@@ -121,7 +155,7 @@ export default function CustomerWizardPage() {
             <span className="hidden sm:inline">Sipariş Takibi</span>
           </button>
           <a
-            href={`tel:${settings?.company_phone || ''}`}
+            href={`tel:${phoneNumber}`}
             className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-xs font-bold text-white transition shadow-sm"
           >
             <Phone className="w-3.5 h-3.5" />

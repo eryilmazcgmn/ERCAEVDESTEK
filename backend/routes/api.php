@@ -9,6 +9,7 @@ use App\Http\Controllers\QuotationController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\SettingController;
 use App\Http\Controllers\FeedbackController;
+use App\Http\Controllers\ServiceController;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
 
@@ -22,6 +23,7 @@ Route::middleware(['throttle:30,1'])->group(function () {
     Route::post('/calculate-price', [QuotationController::class, 'calculatePrice']);
     Route::get('/settings', [SettingController::class, 'index']);
     Route::get('/settings/bank', [SettingController::class, 'getBankInfo']);
+    Route::get('/services', [ServiceController::class, 'index']);
     Route::get('/tracking/{session_id}', [QuotationController::class, 'trackingInfo']);
     Route::get('/tracking-by-phone/{phone}', [QuotationController::class, 'trackingByPhone']);
     Route::post('/feedback', [FeedbackController::class, 'store']);
@@ -91,6 +93,12 @@ Route::middleware(['auth.jwt', 'auth.admin'])->prefix('admin')->group(function (
     // Service Prices management
     Route::get('/service-prices', [AdminController::class, 'getServicePrices']);
     Route::post('/service-prices/bulk-update', [AdminController::class, 'updateServicePrices']);
+
+    // Service management (CRUD)
+    Route::get('/services', [AdminController::class, 'getServices']);
+    Route::post('/services', [AdminController::class, 'createService']);
+    Route::put('/services/{id}', [AdminController::class, 'updateService']);
+    Route::delete('/services/{id}', [AdminController::class, 'deleteService']);
 
     // Hosting utility routes — protected by ADMIN_OPERATION_SECRET
     Route::get('/link-storage', function (SettingService $settingService, Request $request) {

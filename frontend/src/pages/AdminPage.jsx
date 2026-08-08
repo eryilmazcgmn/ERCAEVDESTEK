@@ -16,8 +16,9 @@ import WorkOrdersTab from '../components/Admin/WorkOrdersTab';
 import PricingTab from '../components/Admin/PricingTab';
 import TechniciansTab from '../components/Admin/TechniciansTab';
 import SettingsTab from '../components/Admin/SettingsTab';
+import ServicesTab from '../components/Admin/ServicesTab';
 
-const VALID_TABS = ['dashboard', 'customers', 'quotations', 'work-orders', 'pricing', 'technicians', 'settings'];
+const VALID_TABS = ['dashboard', 'customers', 'quotations', 'work-orders', 'pricing', 'technicians', 'services', 'settings'];
 
 export default function AdminPage({ admin }) {
   const { theme, toggleTheme } = useTheme();
@@ -156,6 +157,16 @@ export default function AdminPage({ admin }) {
 
               {activeTab === 'settings' && (
                 <SettingsTab adminToken={admin.adminToken} />
+              )}
+
+              {activeTab === 'services' && (
+                <ServicesTab
+                  crmServices={admin.crmServices}
+                  handleCreateService={admin.handleCreateService}
+                  handleUpdateService={admin.handleUpdateService}
+                  handleDeleteService={admin.handleDeleteService}
+                  loadingCrmData={admin.loadingCrmData}
+                />
               )}
             </>
           )}
