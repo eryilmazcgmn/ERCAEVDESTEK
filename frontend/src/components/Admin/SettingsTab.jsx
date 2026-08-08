@@ -188,17 +188,8 @@ const SettingsTab = ({ adminToken }) => {
                                 className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm font-mono focus:outline-none focus:border-emerald-500 dark:text-white transition"
                             />
                         </div>
-                        <div>
-                            <label className="block text-xs font-semibold text-slate-500 dark:text-gray-400 uppercase mb-1.5">Varsayılan Kapora Tutarı (TL)</label>
-                            <input 
-                                type="number" 
-                                min="0"
-                                name="deposit_amount"
-                                value={formData.deposit_amount || ''}
-                                onChange={handleChange}
-                                placeholder="500"
-                                className="w-full bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-emerald-500 dark:text-white transition"
-                            />
+                        <div className="p-3 rounded-xl bg-slate-50 dark:bg-gray-900 border border-slate-200 dark:border-gray-800 text-xs text-slate-500 dark:text-gray-400">
+                            💡 <strong>Kapora Hesabı:</strong> Kapora tutarı, müşterinin seçtiği hizmet kalemlerine göre hesaplanan toplam teklif tutarının <strong>otomatik %20'si</strong> olarak belirlenir.
                         </div>
                     </div>
                 </div>
