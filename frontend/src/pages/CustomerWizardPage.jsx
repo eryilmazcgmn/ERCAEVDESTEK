@@ -20,7 +20,7 @@ import { useSettings } from '../context/SettingsContext';
 
 // Customer Components
 import StepWelcome from '../components/Customer/StepWelcome';
-import StepQuestions from '../components/Customer/StepQuestions';
+import StepChatAssistant from '../components/Customer/StepChatAssistant';
 import StepContact from '../components/Customer/StepContact';
 import StepQuotation from '../components/Customer/StepQuotation';
 
@@ -236,7 +236,7 @@ export default function CustomerWizardPage() {
 
           {session.activeStep === 2 && (
             <div className="glass-panel rounded-3xl border border-slate-200 dark:border-gray-800/80 p-5 md:p-8 min-h-[420px] flex flex-col">
-              <StepQuestions
+              <StepChatAssistant
                 selectedService={session.selectedService}
                 formAnswers={session.formAnswers}
                 handleInputChange={session.handleInputChange}
